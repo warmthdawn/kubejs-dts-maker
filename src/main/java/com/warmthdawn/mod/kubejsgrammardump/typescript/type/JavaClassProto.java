@@ -24,6 +24,17 @@ public class JavaClassProto extends AbstractClass {
         this.constructors = constructors;
     }
 
+    public List<JSFunction> getStaticFuncs() {
+        return staticFuncs;
+    }
+
+    public List<Property> getStaticFields() {
+        return staticFields;
+    }
+
+    public List<JSConstructor> getConstructors() {
+        return constructors;
+    }
 
     public String getActualName() {
         return actualName;
@@ -43,7 +54,7 @@ public class JavaClassProto extends AbstractClass {
 
     @Override
     public void generate(StringBuilder builder) {
-        builder.append("interface ").append(getName());
+        builder.append("interface ").append(getActualName());
     }
 
     @Override

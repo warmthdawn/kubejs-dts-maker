@@ -11,7 +11,7 @@ public class TSArray implements IType {
 
     @Override
     public String getSignature() {
-        return elementType + "[]";
+        return elementType.getSignature() + "[]";
     }
 
     public IType getElementType() {

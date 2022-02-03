@@ -23,10 +23,7 @@ import java.util.Set;
 public class DeclarationBuilder {
     private static final String INDENT = "    ";
 
-    public static Set<String> whitelist = new HashSet<>();
-
     public static void build() {
-        whitelist.clear();
         Utils.lazyTypes.clear();
         JavaClassCollector.INSTANCE.getResolvedClasses().clear();
         JavaClassCollector.INSTANCE.getClasses().clear();
@@ -48,12 +45,10 @@ public class DeclarationBuilder {
         }
         for (TypeAlias typeAlias : GlobalCollector.INSTANCE.getTypeAliases()) {
             typeAlias.generate(builder);
-            whitelist.add(typeAlias.getSignature());
             builder.append("\n\n");
         }
         for (Variable globalVar : GlobalCollector.INSTANCE.getGlobalVars()) {
             globalVar.generate(builder);
-            whitelist.add(globalVar.getType().getSignature());
             builder.append("\n\n");
         }
 
@@ -67,14 +62,11 @@ public class DeclarationBuilder {
             packageClasses.stream().filter(it -> it instanceof JavaClass).forEach(clazz -> {
                 currentNames.add(clazz.getName());
             });
+            packageClasses.stream().filter(it -> it instanceof JavaClassProto).forEach(clazz -> {
+                ((JavaClassProto) clazz).adjustActualName(currentNames);
+                currentNames.add(((JavaClassProto) clazz).getActualName());
+            });
             packageClasses.forEach(clazz -> {
-                if(!whitelist.contains(clazz.getSignature())) {
-                    return;
-                }
-                if (clazz instanceof JavaClassProto) {
-                    ((JavaClassProto) clazz).adjustActualName(currentNames);
-                    currentNames.add(((JavaClassProto) clazz).getActualName());
-                }
                 builder.append(INDENT);
                 clazz.generate(builder);
                 builder.append(" {\n");

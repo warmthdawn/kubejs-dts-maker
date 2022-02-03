@@ -41,7 +41,7 @@ public class Utils {
             clazz == float.class) {
             return TSPrimitive.NUMBER;
         }
-        if(clazz == boolean.class) {
+        if (clazz == boolean.class) {
             return TSPrimitive.BOOLEAN;
         }
         LazyType lazyType = new LazyType(clazz);
@@ -51,6 +51,6 @@ public class Utils {
 
 
     public static Namespace getNamespace(String packageName) {
-        return new Namespace(packageName);
+        return new Namespace(JSKeywords.convertPackageName(packageName));
     }
 }

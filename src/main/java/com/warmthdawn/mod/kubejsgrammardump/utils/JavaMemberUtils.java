@@ -7,9 +7,12 @@ import com.warmthdawn.mod.kubejsgrammardump.typescript.type.IType;
 import com.warmthdawn.mod.kubejsgrammardump.typescript.value.Property;
 import dev.latvian.mods.rhino.util.HideFromJS;
 import dev.latvian.mods.rhino.util.RemapForJS;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.lang.reflect.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class JavaMemberUtils {
     public static List<JSFunction> getMethods(List<Method> methods) {
@@ -45,7 +48,7 @@ public class JavaMemberUtils {
         for (Constructor<?> ctor : methods) {
             IType owner = Utils.getClassType(ctor.getDeclaringClass());
             Parameter[] parameters = ctor.getParameters();
-            res.add(new JSConstructor(owner,  getParameters(parameters)));
+            res.add(new JSConstructor(owner, getParameters(parameters)));
         }
 
         return res;
@@ -94,6 +97,19 @@ public class JavaMemberUtils {
         private Class<?> type;
         private boolean valid = true;
 
+    }
+
+    private static final Logger logger = LogManager.getLogger();
+
+    private static void logError(String msg, Class<?> clazz, Throwable throwable) {
+        if (throwable instanceof NoClassDefFoundError) {
+            logger.warn(msg + ": Failed to load class: ", clazz);
+        }
+        try {
+            logger.warn(msg + ": Failed to load class: {}", clazz.getSimpleName());
+        } catch (Exception ignored) {
+
+        }
     }
 
 
@@ -194,31 +210,75 @@ public class JavaMemberUtils {
         }
 
         List<Constructor<?>> constructorsList = new ArrayList<>();
-        for (Constructor<?> c : clazz.getConstructors()) {
-            if (!c.isAnnotationPresent(HideFromJS.class)) {
-                constructorsList.add(c);
+
+        try {
+            for (Constructor<?> c : clazz.getConstructors()) {
+                if (!c.isAnnotationPresent(HideFromJS.class)) {
+                    constructorsList.add(c);
+                }
             }
+        } catch (Throwable e) {
+            logError("getConstructors", clazz, e);
         }
         return constructorsList;
     }
 
     public static List<Field> getFields(Class<?> clazz, boolean isStatic) {
         List<Field> result = new ArrayList<>();
-        for (Field f : clazz.getFields()) {
-            if (!f.isAnnotationPresent(HideFromJS.class) && (isStatic == Modifier.isStatic(f.getModifiers()))) {
-                result.add(f);
+        try {
+            for (Field f : clazz.getDeclaredFields()) {
+                int modifiers = f.getModifiers();
+                if (!f.isAnnotationPresent(HideFromJS.class) && Modifier.isPublic(modifiers) && (isStatic == Modifier.isStatic(modifiers))) {
+                    result.add(f);
+                }
             }
+        } catch (Throwable e) {
+            logError("getFields", clazz, e);
         }
         return result;
     }
 
     public static List<Method> getMethods(Class<?> clazz, boolean isStatic) {
         List<Method> result = new ArrayList<>();
-        for (Method m : clazz.getMethods()) {
-            if (!m.isAnnotationPresent(HideFromJS.class) && (isStatic == Modifier.isStatic(m.getModifiers()))) {
-                result.add(m);
+        try {
+            if (!clazz.isInterface()) {
+                Class<?> superclass = clazz.getSuperclass();
+                if (superclass != null) {
+                    Map<String, Set<Class<?>[]>> superclassMethods = Arrays.stream(superclass.getMethods())
+                        .collect(Collectors.groupingBy(Method::getName, Collectors.mapping(Method::getParameterTypes, Collectors.toSet())));
+
+                    loopMethods:
+                    for (Method m : clazz.getDeclaredMethods()) {
+                        int modifiers = m.getModifiers();
+                        if (!m.isAnnotationPresent(HideFromJS.class) && Modifier.isPublic(modifiers) && (isStatic == Modifier.isStatic(modifiers))) {
+                            //去掉实现方法
+                            Set<Class<?>[]> params = superclassMethods.get(m.getName());
+                            if (params != null) {
+                                Class<?>[] types = m.getParameterTypes();
+                                for (Class<?>[] superTypes : params) {
+                                    if (Arrays.equals(superTypes, types)) {
+                                        continue loopMethods;
+                                    }
+                                }
+                            }
+                            result.add(m);
+                        }
+                    }
+                    return result;
+                }
             }
+
+            for (Method m : clazz.getDeclaredMethods()) {
+                int modifiers = m.getModifiers();
+                if (!m.isAnnotationPresent(HideFromJS.class) && Modifier.isPublic(modifiers) && (isStatic == Modifier.isStatic(modifiers))) {
+                    result.add(m);
+                }
+            }
+            return result;
+
+        } catch (Throwable e) {
+            logError("getMethods", clazz, e);
+            return Collections.emptyList();
         }
-        return result;
     }
 }

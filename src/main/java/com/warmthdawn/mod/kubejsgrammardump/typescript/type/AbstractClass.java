@@ -7,8 +7,8 @@ import com.warmthdawn.mod.kubejsgrammardump.typescript.namespace.Namespace;
 import java.util.function.Consumer;
 
 public abstract class AbstractClass implements IType, ILineBuilder {
-    private Namespace namespace;
-    private String name;
+    private final Namespace namespace;
+    private final String name;
 
     public Namespace getNamespace() {
         return namespace;

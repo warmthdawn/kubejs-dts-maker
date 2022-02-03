@@ -49,6 +49,9 @@ public class JavaTypeUtils {
         List<Property> jsFields = JavaMemberUtils.getFields(fields);
         List<Property> beans = JavaMemberUtils.getBeans(methods);
         List<Property> properties = combine(jsFields, beans);
+        if (functions.size() == 0 && properties.size() == 0 && ctors.size() == 0) {
+            return null;
+        }
         return new JavaClassProto(namespace, clazz.getSimpleName(), functions, properties, ctors);
     }
 }

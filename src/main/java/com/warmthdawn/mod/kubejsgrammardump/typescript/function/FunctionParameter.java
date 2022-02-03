@@ -17,6 +17,6 @@ public class FunctionParameter {
         if (isVarargs) {
             builder.append("...");
         }
-        builder.append(name).append(" ").append(type.getSignature());
+        builder.append(name).append(": ").append(type.getSignature());
     }
 }

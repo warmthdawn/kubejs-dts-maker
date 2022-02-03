@@ -33,7 +33,11 @@ public class JavaClass extends AbstractClass {
     public void generate(StringBuilder builder) {
         builder.append("interface ").append(getName());
         if (proto != null) {
-            builder.append(" extends Omit<").append(proto.getSignature()).append(", 'new'>");
+            if (proto.getConstructors().size() != 0) {
+                builder.append(" extends Omit<").append(proto.getSignature()).append(", 'new'>");
+            } else {
+                builder.append(" extends ").append(proto.getSignature());
+            }
             if (extendFrom.size() > 0) {
                 builder.append(", ");
             }
