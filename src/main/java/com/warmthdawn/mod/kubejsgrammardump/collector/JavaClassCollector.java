@@ -13,13 +13,13 @@ import com.warmthdawn.mod.kubejsgrammardump.typescript.type.IType;
 import com.warmthdawn.mod.kubejsgrammardump.typescript.type.JavaClass;
 import com.warmthdawn.mod.kubejsgrammardump.typescript.type.JavaClassProto;
 import dev.latvian.kubejs.script.ScriptManager;
-import dev.latvian.kubejs.util.ClassFilter;
-import net.minecraft.util.Tuple;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.*;
 
 public class JavaClassCollector {
@@ -96,10 +96,11 @@ public class JavaClassCollector {
                 return resolve(namespace, clazz, extendFrom);
             }
 
-            Class<?> superclass = clazz.getSuperclass();
-            if (superclass != null) {
-                JavaClass superType = resolveClass(superclass.getPackage().getName(), superclass);
-                if(superType != null) {
+            Type superclass = clazz.getGenericSuperclass();
+            if (superclass instanceof Class) {
+                Class<?> actual = (Class<?>) superclass;
+                JavaClass superType = resolveClass(actual.getPackage().getName(), actual);
+                if (superType != null) {
                     extendFrom.add(superType);
                 }
             }
@@ -109,6 +110,31 @@ public class JavaClassCollector {
             logger.warn("Could not load class", e);
             return null;
         }
+    }
+
+    private JavaClass resolveGenericSuperclass(Type type) {
+        Class<?> clazz = null;
+        if (type instanceof Class) {
+            clazz = (Class<?>) type;
+        }
+
+        if(type instanceof ParameterizedType) {
+            ParameterizedType parameterizedType = (ParameterizedType) type;
+            Type[] arguments = parameterizedType.getActualTypeArguments();
+            for (Type argument : arguments) {
+
+            }
+            Type rawType = parameterizedType.getRawType();
+
+            JavaClass rawResult = resolveGenericSuperclass(rawType);
+
+        }
+
+
+        if (clazz != null) {
+            return resolveClass(clazz.getPackage().getName(), clazz);
+        }
+        return null;
     }
 
     private JavaClass resolve(Namespace namespace, Class<?> clazz, List<JavaClass> extendFrom) {

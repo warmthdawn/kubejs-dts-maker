@@ -1,5 +1,7 @@
 package com.warmthdawn.mod.kubejsgrammardump.utils;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import com.warmthdawn.mod.kubejsgrammardump.typescript.function.FunctionParameter;
 import com.warmthdawn.mod.kubejsgrammardump.typescript.function.JSConstructor;
 import com.warmthdawn.mod.kubejsgrammardump.typescript.function.JSFunction;
@@ -241,33 +243,40 @@ public class JavaMemberUtils {
     public static List<Method> getMethods(Class<?> clazz, boolean isStatic) {
         List<Method> result = new ArrayList<>();
         try {
+            Multimap<String, Class<?>[]> superMethods = HashMultimap.create();
             if (!clazz.isInterface()) {
                 Class<?> superclass = clazz.getSuperclass();
                 if (superclass != null) {
-                    Map<String, Set<Class<?>[]>> superclassMethods = Arrays.stream(superclass.getMethods())
-                        .collect(Collectors.groupingBy(Method::getName, Collectors.mapping(Method::getParameterTypes, Collectors.toSet())));
-
-                    loopMethods:
-                    for (Method m : clazz.getDeclaredMethods()) {
-                        int modifiers = m.getModifiers();
-                        if (!m.isAnnotationPresent(HideFromJS.class) && Modifier.isPublic(modifiers) && (isStatic == Modifier.isStatic(modifiers))) {
-                            //去掉实现方法
-                            Set<Class<?>[]> params = superclassMethods.get(m.getName());
-                            if (params != null) {
-                                Class<?>[] types = m.getParameterTypes();
-                                for (Class<?>[] superTypes : params) {
-                                    if (Arrays.equals(superTypes, types)) {
-                                        continue loopMethods;
-                                    }
-                                }
-                            }
-                            result.add(m);
-                        }
+                    for (Method method : superclass.getMethods()) {
+                        superMethods.put(method.getName(), method.getParameterTypes());
                     }
                     return result;
                 }
             }
+            for (Class<?> superInterface : clazz.getInterfaces()) {
+                for (Method method : superInterface.getMethods()) {
+                    superMethods.put(method.getName(), method.getParameterTypes());
+                }
+                return result;
+            }
 
+            loopMethods:
+            for (Method m : clazz.getDeclaredMethods()) {
+                int modifiers = m.getModifiers();
+                if (!m.isAnnotationPresent(HideFromJS.class) && Modifier.isPublic(modifiers) && (isStatic == Modifier.isStatic(modifiers))) {
+                    //去掉实现方法
+                    Collection<Class<?>[]> params = superMethods.get(m.getName());
+                    if (params != null) {
+                        Class<?>[] types = m.getParameterTypes();
+                        for (Class<?>[] superTypes : params) {
+                            if (Arrays.equals(superTypes, types)) {
+                                continue loopMethods;
+                            }
+                        }
+                    }
+                    result.add(m);
+                }
+            }
             for (Method m : clazz.getDeclaredMethods()) {
                 int modifiers = m.getModifiers();
                 if (!m.isAnnotationPresent(HideFromJS.class) && Modifier.isPublic(modifiers) && (isStatic == Modifier.isStatic(modifiers))) {
