@@ -2,13 +2,15 @@ package com.warmthdawn.mod.kubejsgrammardump.typescript.primitives;
 
 import com.warmthdawn.mod.kubejsgrammardump.typescript.type.IType;
 
+import javax.annotation.Nonnull;
+
 public enum TSPrimitive implements IType {
     NEVER("never"),
     ANY("any"),
     UNKNOWN("unknown"),
     VOID("void"),
     UNDEFINED("undefined"),
-    NUMBER("unknown"),
+    NUMBER("number"),
     STRING("string"),
     BOOLEAN("boolean"),
     SYMBOL("symbol")
@@ -20,7 +22,7 @@ public enum TSPrimitive implements IType {
 
     private final String name;
     @Override
-    public String getSignature() {
+    public @Nonnull String getSignature() {
         return name;
     }
 }

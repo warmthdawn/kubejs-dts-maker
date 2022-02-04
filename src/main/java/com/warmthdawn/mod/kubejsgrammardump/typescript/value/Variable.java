@@ -10,11 +10,7 @@ public class Variable extends AbstractValue implements ILineBuilder {
 
     @Override
     public void generate(StringBuilder builder) {
-        if(readonly) {
-            builder.append("declare const ");
-        }else {
-            builder.append("declare var ");
-        }
+        builder.append("declare var ");
         builder.append(name).append(": ").append(type.getSignature()).append(";");
     }
 }

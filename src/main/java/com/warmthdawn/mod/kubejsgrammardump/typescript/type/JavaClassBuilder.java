@@ -2,6 +2,8 @@ package com.warmthdawn.mod.kubejsgrammardump.typescript.type;
 
 import com.warmthdawn.mod.kubejsgrammardump.typescript.IClassMember;
 import com.warmthdawn.mod.kubejsgrammardump.typescript.function.JSFunction;
+import com.warmthdawn.mod.kubejsgrammardump.typescript.generic.GenericVariable;
+import com.warmthdawn.mod.kubejsgrammardump.typescript.generic.IPartialType;
 import com.warmthdawn.mod.kubejsgrammardump.typescript.namespace.Namespace;
 import com.warmthdawn.mod.kubejsgrammardump.typescript.value.Property;
 
@@ -13,7 +15,8 @@ public class JavaClassBuilder {
     private List<JSFunction> functions;
     private List<Property> properties;
     private List<IClassMember> extraMembers;
-    private List<JavaClass> extendFrom;
+    private List<IPartialType> extendFrom;
+    private List<GenericVariable> genericVariables;
 
     public JavaClassBuilder setNamespace(Namespace namespace) {
         this.namespace = namespace;
@@ -40,12 +43,29 @@ public class JavaClassBuilder {
         return this;
     }
 
-    public JavaClassBuilder setExtendFrom(List<JavaClass> extendFrom) {
+    public JavaClassBuilder setExtendFrom(List<IPartialType> extendFrom) {
         this.extendFrom = extendFrom;
         return this;
     }
 
-    public JavaClass createJavaClass() {
-        return new JavaClass(namespace, name, functions, properties, extraMembers, extendFrom);
+    public JavaClassBuilder setGenericVariables(List<GenericVariable> genericVariables) {
+        this.genericVariables = genericVariables;
+        return this;
     }
+
+    public JavaClass createJavaClass() {
+        JavaClass result = new JavaClass(namespace, name, functions, properties, extraMembers, extendFrom);
+        for (JSFunction function : functions) {
+            function.setRelevantClass(result);
+        }
+        for (Property property : properties) {
+            property.setRelevantClass(result);
+        }
+        for (IClassMember extraMember : extraMembers) {
+            extraMember.setRelevantClass(result);
+        }
+        result.setGenericVariables(genericVariables);
+        return result;
+    }
+
 }

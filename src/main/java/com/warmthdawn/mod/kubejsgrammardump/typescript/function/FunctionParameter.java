@@ -13,10 +13,15 @@ public class FunctionParameter {
         this.isVarargs = isVarargs;
     }
 
-    public void appendTo(StringBuilder builder) {
+    public void appendTo(StringBuilder builder, JSFunction jsFunction) {
         if (isVarargs) {
             builder.append("...");
         }
-        builder.append(name).append(": ").append(type.getSignature());
+        builder.append(name).append(": ");
+        if (jsFunction != null) {
+            builder.append(type.resolve(jsFunction).getSignature());
+        } else {
+            builder.append(type.getSignature());
+        }
     }
 }

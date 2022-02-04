@@ -25,10 +25,21 @@ public class JavaResolveUtils {
             return new TSArray(resolveClass(clazz.getComponentType()));
         }
 
-
+        TSPrimitive primitive = Utils.getPrimitive(clazz);
+        if (primitive != null) {
+            return primitive;
+        }
+        IType alternative = WrappedObjectCollector.INSTANCE.findAlternative(clazz);
+        if (alternative != null) {
+            return alternative;
+        }
         //不是特殊泛型，那就直接获取
-        IType resolved = JavaClassCollector.INSTANCE.resolve(clazz);
-        return WrappedObjectCollector.INSTANCE.findJSWarp(clazz, resolved);
+        IType result = WrappedObjectCollector.INSTANCE.findJSWarp(clazz);
+        if (result != null) {
+            return result;
+        }
+        result = JavaClassCollector.INSTANCE.resolve(clazz);
+        return result;
 
 
     }
@@ -39,15 +50,15 @@ public class JavaResolveUtils {
      * @return
      */
     public static List<IClassMember> resolveExtraMembers(Class<?> clazz, boolean isStatic) {
-        if(!isStatic) {
-            if (List.class.isAssignableFrom(clazz) || ListLike.class.isAssignableFrom(clazz)) {
+        if (!isStatic) {
+            if (List.class == clazz || ListLike.class == clazz) {
                 return Lists.newArrayList(
                     new Property("length", TSPrimitive.NUMBER, true),
                     new JSSymbolProperty(SymbolKey.IS_CONCAT_SPREADABLE, TSPrimitive.BOOLEAN, true),
                     new TSIndexFunction(TSPrimitive.ANY, false)
                 );
             }
-            if (Map.class.isAssignableFrom(clazz) || MapLike.class.isAssignableFrom(clazz)) {
+            if (Map.class == clazz || MapLike.class == clazz) {
                 return Collections.singletonList(
                     new TSIndexFunction(TSPrimitive.ANY, false, "key", false)
                 );

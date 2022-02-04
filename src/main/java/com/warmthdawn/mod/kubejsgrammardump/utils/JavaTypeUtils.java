@@ -3,6 +3,8 @@ package com.warmthdawn.mod.kubejsgrammardump.utils;
 import com.warmthdawn.mod.kubejsgrammardump.typescript.IClassMember;
 import com.warmthdawn.mod.kubejsgrammardump.typescript.function.JSConstructor;
 import com.warmthdawn.mod.kubejsgrammardump.typescript.function.JSFunction;
+import com.warmthdawn.mod.kubejsgrammardump.typescript.generic.GenericVariable;
+import com.warmthdawn.mod.kubejsgrammardump.typescript.generic.IPartialType;
 import com.warmthdawn.mod.kubejsgrammardump.typescript.namespace.Namespace;
 import com.warmthdawn.mod.kubejsgrammardump.typescript.type.JavaClass;
 import com.warmthdawn.mod.kubejsgrammardump.typescript.type.JavaClassBuilder;
@@ -28,7 +30,7 @@ public class JavaTypeUtils {
         return new ArrayList<>(result.values());
     }
 
-    public static JavaClass resolveClass(Class<?> clazz, List<JavaClass> extendFrom, Namespace namespace) {
+    public static JavaClass resolveClass(Class<?> clazz, List<IPartialType> extendFrom, Namespace namespace) {
 
         List<Method> methods = JavaMemberUtils.getMethods(clazz, false);
         List<JSFunction> functions = JavaMemberUtils.getMethods(methods);
@@ -37,14 +39,15 @@ public class JavaTypeUtils {
         List<Property> beans = JavaMemberUtils.getBeans(methods);
         List<Property> properties = combine(jsFields, beans);
         List<IClassMember> extraMembers = JavaResolveUtils.resolveExtraMembers(clazz, false);
-        return new JavaClassBuilder().setNamespace(namespace).setName(clazz.getSimpleName()).setFunctions(functions).setProperties(properties).setExtraMembers(extraMembers).setExtendFrom(extendFrom).createJavaClass();
+        List<GenericVariable> genericVariables = JavaMemberUtils.getGenericVariables(clazz);
+        return new JavaClassBuilder().setGenericVariables(genericVariables).setNamespace(namespace).setName(clazz.getSimpleName()).setFunctions(functions).setProperties(properties).setExtraMembers(extraMembers).setExtendFrom(extendFrom).createJavaClass();
     }
 
-    public static JavaClassProto resolveProto(Class<?> clazz, Namespace namespace) {
+    public static JavaClassProto resolveProto(Class<?> clazz, Namespace namespace, JavaClass relevantClass) {
         List<Method> methods = JavaMemberUtils.getMethods(clazz, true);
         List<JSFunction> functions = JavaMemberUtils.getMethods(methods);
         List<Constructor<?>> constructors = JavaMemberUtils.getConstructors(clazz);
-        List<JSConstructor> ctors = JavaMemberUtils.getCtors(constructors);
+        List<JSConstructor> ctors = JavaMemberUtils.getCtors(constructors, relevantClass);
         List<Field> fields = JavaMemberUtils.getFields(clazz, true);
         List<Property> jsFields = JavaMemberUtils.getFields(fields);
         List<Property> beans = JavaMemberUtils.getBeans(methods);

@@ -41,9 +41,9 @@ public class WrappedBindingsEvent extends BindingsEvent {
     @Override
     public void add(String name, Object value) {
         if (value.getClass() == Class.class) {
-            globalTypes.put(name, Utils.getClassType((Class<?>) value));
+            globalTypes.put(name, Utils.getClassTypeRaw((Class<?>) value));
         } else {
-            globalVars.put(name, Utils.getObjectType(value));
+            globalVars.put(name, Utils.getObjectTypeRaw(value));
         }
 
     }
@@ -51,7 +51,7 @@ public class WrappedBindingsEvent extends BindingsEvent {
     @Override
     @Deprecated
     public void addClass(String name, Class<?> clazz) {
-        globalTypes.put(name, Utils.getClassType(clazz));
+        globalTypes.put(name, Utils.getClassTypeRaw(clazz));
     }
 
     @Override
@@ -66,7 +66,7 @@ public class WrappedBindingsEvent extends BindingsEvent {
 
     @Deprecated
     public void addConstant(String name, Object value) {
-        globalVars.put(name, Utils.getObjectType(value));
+        globalVars.put(name, Utils.getObjectTypeRaw(value));
     }
 
     @Override

@@ -5,7 +5,9 @@ import com.google.common.collect.Multimap;
 import com.warmthdawn.mod.kubejsgrammardump.typescript.function.FunctionParameter;
 import com.warmthdawn.mod.kubejsgrammardump.typescript.function.JSConstructor;
 import com.warmthdawn.mod.kubejsgrammardump.typescript.function.JSFunction;
+import com.warmthdawn.mod.kubejsgrammardump.typescript.generic.GenericVariable;
 import com.warmthdawn.mod.kubejsgrammardump.typescript.type.IType;
+import com.warmthdawn.mod.kubejsgrammardump.typescript.type.JavaClass;
 import com.warmthdawn.mod.kubejsgrammardump.typescript.value.Property;
 import dev.latvian.mods.rhino.util.HideFromJS;
 import dev.latvian.mods.rhino.util.RemapForJS;
@@ -17,6 +19,18 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class JavaMemberUtils {
+
+    public static List<GenericVariable> getGenericVariables(GenericDeclaration declaration) {
+        return Arrays.stream(declaration.getTypeParameters()).map(it -> {
+            Type[] bounds = it.getBounds();
+            IType[] boundsResult = new IType[bounds.length];
+            for (int i = 0; i < bounds.length; i++) {
+                boundsResult[i] = Utils.getClassGenericType(bounds[i]);
+            }
+            return new GenericVariable(boundsResult, it.getName());
+        }).collect(Collectors.toList());
+    }
+
     public static List<JSFunction> getMethods(List<Method> methods) {
         List<JSFunction> res = new ArrayList<>();
 
@@ -28,7 +42,9 @@ public class JavaMemberUtils {
             }
             IType result = Utils.getClassType(method.getReturnType());
             Parameter[] parameters = method.getParameters();
-            res.add(new JSFunction(name, result, getParameters(parameters)));
+            JSFunction jsFunction = new JSFunction(name, result, getParameters(parameters));
+            jsFunction.setGenericVariables(getGenericVariables(method));
+            res.add(jsFunction);
         }
 
         return res;
@@ -38,19 +54,22 @@ public class JavaMemberUtils {
         FunctionParameter[] params = new FunctionParameter[parameters.length];
         for (int i = 0; i < parameters.length; i++) {
             Parameter parameter = parameters[i];
-            IType type = Utils.getClassType(parameter.getType());
+            IType type = Utils.getClassGenericType(parameter.getParameterizedType());
             params[i] = new FunctionParameter(type, parameter.getName(), parameter.isVarArgs());
         }
         return params;
     }
 
-    public static List<JSConstructor> getCtors(List<Constructor<?>> methods) {
+    public static List<JSConstructor> getCtors(List<Constructor<?>> constructors, JavaClass relevantClass) {
         List<JSConstructor> res = new ArrayList<>();
 
-        for (Constructor<?> ctor : methods) {
+        for (Constructor<?> ctor : constructors) {
             IType owner = Utils.getClassType(ctor.getDeclaringClass());
             Parameter[] parameters = ctor.getParameters();
-            res.add(new JSConstructor(owner, getParameters(parameters)));
+            JSConstructor jsConstructor = new JSConstructor(owner, getParameters(parameters));
+            jsConstructor.setGenericVariables(getGenericVariables(ctor));
+            jsConstructor.setRelevantClass(relevantClass);
+            res.add(jsConstructor);
         }
 
         return res;
@@ -274,12 +293,6 @@ public class JavaMemberUtils {
                             }
                         }
                     }
-                    result.add(m);
-                }
-            }
-            for (Method m : clazz.getDeclaredMethods()) {
-                int modifiers = m.getModifiers();
-                if (!m.isAnnotationPresent(HideFromJS.class) && Modifier.isPublic(modifiers) && (isStatic == Modifier.isStatic(modifiers))) {
                     result.add(m);
                 }
             }

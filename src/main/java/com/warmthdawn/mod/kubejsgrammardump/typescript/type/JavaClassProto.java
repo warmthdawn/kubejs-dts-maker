@@ -6,8 +6,10 @@ import com.warmthdawn.mod.kubejsgrammardump.typescript.function.JSFunction;
 import com.warmthdawn.mod.kubejsgrammardump.typescript.namespace.Namespace;
 import com.warmthdawn.mod.kubejsgrammardump.typescript.value.Property;
 
+import javax.annotation.Nonnull;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -22,6 +24,14 @@ public class JavaClassProto extends AbstractClass {
         this.staticFuncs = staticFuncs;
         this.staticFields = staticFields;
         this.constructors = constructors;
+    }
+
+    public boolean hasCtors() {
+        return constructors.size() > 0;
+    }
+
+    public boolean hasStaticMembers() {
+        return staticFields.size() > 0 || staticFuncs.size() > 0;
     }
 
     public List<JSFunction> getStaticFuncs() {
@@ -48,13 +58,18 @@ public class JavaClassProto extends AbstractClass {
     }
 
     @Override
+    @Nonnull
     public String getSignature() {
-        return getNamespace().getName() + '.' + actualName;
+        return getNamespace().getName() + '.' + getActualName();
     }
 
     @Override
     public void generate(StringBuilder builder) {
+        if (getNamespace() == null) {
+            builder.append("declare ");
+        }
         builder.append("interface ").append(getActualName());
+        generateGeneric(builder);
     }
 
     @Override

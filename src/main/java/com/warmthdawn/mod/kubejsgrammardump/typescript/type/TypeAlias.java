@@ -2,6 +2,8 @@ package com.warmthdawn.mod.kubejsgrammardump.typescript.type;
 
 import com.warmthdawn.mod.kubejsgrammardump.typescript.ILineBuilder;
 
+import javax.annotation.Nonnull;
+
 public class TypeAlias implements IType, ILineBuilder {
     private final IType targetType;
     private final String name;
@@ -20,7 +22,7 @@ public class TypeAlias implements IType, ILineBuilder {
     }
 
     @Override
-    public String getSignature() {
+    public @Nonnull String getSignature() {
         return name;
     }
 

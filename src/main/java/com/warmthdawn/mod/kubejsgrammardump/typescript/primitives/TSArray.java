@@ -2,6 +2,8 @@ package com.warmthdawn.mod.kubejsgrammardump.typescript.primitives;
 
 import com.warmthdawn.mod.kubejsgrammardump.typescript.type.IType;
 
+import javax.annotation.Nonnull;
+
 public class TSArray implements IType {
     private final IType elementType;
 
@@ -10,7 +12,7 @@ public class TSArray implements IType {
     }
 
     @Override
-    public String getSignature() {
+    public @Nonnull String getSignature() {
         return elementType.getSignature() + "[]";
     }
 

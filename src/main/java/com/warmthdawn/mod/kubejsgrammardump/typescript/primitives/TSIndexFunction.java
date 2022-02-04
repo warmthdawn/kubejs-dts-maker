@@ -2,7 +2,10 @@ package com.warmthdawn.mod.kubejsgrammardump.typescript.primitives;
 
 import com.warmthdawn.mod.kubejsgrammardump.typescript.IClassMember;
 import com.warmthdawn.mod.kubejsgrammardump.typescript.ILineBuilder;
+import com.warmthdawn.mod.kubejsgrammardump.typescript.type.AbstractClass;
 import com.warmthdawn.mod.kubejsgrammardump.typescript.type.IType;
+
+import javax.annotation.Nullable;
 
 /**
  * 表示TypeScript的索引方法
@@ -38,7 +41,21 @@ public class TSIndexFunction implements IClassMember, ILineBuilder {
         } else {
             builder.append(": string]: ");
         }
-        builder.append(type.getSignature()).append("\n");
+        builder.append(type.resolve(relevantClass).getSignature()).append("\n");
+    }
+
+
+    private AbstractClass relevantClass;
+
+    @Override
+    @Nullable
+    public AbstractClass getRelevantClass() {
+        return relevantClass;
+    }
+
+    @Override
+    public void setRelevantClass(AbstractClass relevantClass) {
+        this.relevantClass = relevantClass;
     }
 
     @Override
