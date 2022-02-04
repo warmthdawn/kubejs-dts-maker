@@ -49,14 +49,10 @@ public class JSFunction implements IClassMember, ILineBuilder, GenericVariablePr
 
     @Override
     public List<GenericVariable> getVariables() {
-        ImmutableList.Builder<GenericVariable> builder = ImmutableList.builder();
         if (genericVariables != null) {
-            builder.addAll(genericVariables);
+            return genericVariables;
         }
-        if (relevantClass != null) {
-            builder.addAll(relevantClass.getVariables());
-        }
-        return builder.build();
+        return Collections.emptyList();
     }
 
     public void setGenericVariables(List<GenericVariable> genericVariables) {

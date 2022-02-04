@@ -51,16 +51,16 @@ public class JavaClass extends AbstractClass {
             }
         }
         boolean hasExtends = false;
-        if (proto != null) {
-            if (proto.hasCtors() && proto.hasStaticMembers()) {
-                builder.append(" extends Omit<").append(proto.getSignature()).append(", 'new'>");
-                hasExtends = true;
-            } else if (proto.hasStaticMembers()) {
-                builder.append(" extends ").append(proto.getSignature());
-                hasExtends = true;
-            }
-
-        }
+//        if (proto != null) {
+//            if (proto.hasCtors() && proto.hasStaticMembers()) {
+//                builder.append(" extends Omit<").append(proto.getSignature()).append(", 'new'>");
+//                hasExtends = true;
+//            } else if (proto.hasStaticMembers()) {
+//                builder.append(" extends ").append(proto.getSignature());
+//                hasExtends = true;
+//            }
+//
+//        }
         if (actualSuper.size() > 0) {
             if (hasExtends) {
                 builder.append(", ");

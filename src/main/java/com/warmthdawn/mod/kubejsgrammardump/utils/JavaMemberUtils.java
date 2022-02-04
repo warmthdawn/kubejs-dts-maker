@@ -67,7 +67,11 @@ public class JavaMemberUtils {
             IType owner = Utils.getClassType(ctor.getDeclaringClass());
             Parameter[] parameters = ctor.getParameters();
             JSConstructor jsConstructor = new JSConstructor(owner, getParameters(parameters));
-            jsConstructor.setGenericVariables(getGenericVariables(ctor));
+            List<GenericVariable> genericVariables = getGenericVariables(ctor);
+            genericVariables.addAll(relevantClass.getVariables());
+            if(genericVariables.size() > 0) {
+                jsConstructor.setGenericVariables(genericVariables);
+            }
             jsConstructor.setRelevantClass(relevantClass);
             res.add(jsConstructor);
         }
