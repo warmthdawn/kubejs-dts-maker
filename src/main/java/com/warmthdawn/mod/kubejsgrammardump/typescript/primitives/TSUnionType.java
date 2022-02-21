@@ -32,8 +32,8 @@ public class TSUnionType implements IDeclaredType {
         List<IType> result = new ArrayList<>();
         for (IPartialType superType : javaClass.getParents()) {
             IType resolve = superType.resolve(null);
-            if (LazyType.isInstance(AbstractClass.class, resolve)) {
-                result.add(LazyType.cast(AbstractClass.class, resolve));
+            if (LazyType.isInstance(IDeclaredType.class, resolve)) {
+                result.add(LazyType.cast(IDeclaredType.class, resolve));
             }
         }
         if (result.size() == 1) {

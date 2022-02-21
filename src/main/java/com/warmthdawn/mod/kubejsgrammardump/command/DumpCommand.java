@@ -12,11 +12,11 @@ public class DumpCommand {
             it -> it.hasPermission(2)
         ).executes((it) -> {
             CommandSource commandsource = it.getSource();
-            try {
-                DeclarationBuilder.build();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+//            try {
+//                DeclarationBuilder.build();
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
             return 0;
         }));
     }

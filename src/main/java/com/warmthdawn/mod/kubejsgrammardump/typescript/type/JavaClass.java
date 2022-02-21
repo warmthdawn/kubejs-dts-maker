@@ -50,23 +50,8 @@ public class JavaClass extends AbstractClass {
                 actualSuper.add(LazyType.cast(IDeclaredType.class, resolve));
             }
         }
-        boolean hasExtends = false;
-//        if (proto != null) {
-//            if (proto.hasCtors() && proto.hasStaticMembers()) {
-//                builder.append(" extends Omit<").append(proto.getSignature()).append(", 'new'>");
-//                hasExtends = true;
-//            } else if (proto.hasStaticMembers()) {
-//                builder.append(" extends ").append(proto.getSignature());
-//                hasExtends = true;
-//            }
-//
-//        }
         if (actualSuper.size() > 0) {
-            if (hasExtends) {
-                builder.append(", ");
-            } else {
-                builder.append(" extends ");
-            }
+            builder.append(" extends ");
         }
         for (int i = 0; i < actualSuper.size(); i++) {
             builder.append(actualSuper.get(i).getSignature());

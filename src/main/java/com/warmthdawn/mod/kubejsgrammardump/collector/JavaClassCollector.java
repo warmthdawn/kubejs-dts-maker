@@ -52,7 +52,7 @@ public class JavaClassCollector {
 
     public IType resolve(Class<?> clazz) {
         if (!resolvedClasses.containsKey(clazz)) {
-            logger.warn("Class {} are not resolved, using any", clazz.getCanonicalName());
+//            logger.warn("Class {} are not resolved, using any", clazz.getCanonicalName());
 //            Package aPackage = clazz.getPackage();
 //            if (aPackage == null) {
 //                return null;
