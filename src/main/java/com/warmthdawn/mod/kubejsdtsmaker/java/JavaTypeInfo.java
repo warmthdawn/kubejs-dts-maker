@@ -1,29 +1,64 @@
 package com.warmthdawn.mod.kubejsdtsmaker.java;
 
-import java.lang.reflect.Type;
-import java.util.List;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+import com.warmthdawn.mod.kubejsdtsmaker.context.ResolveContext;
+
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 
 public class JavaTypeInfo {
     private Class<?> javaClazz;
-    private Type superClazz;
-    private List<Type> interfaces;
     private Map<String, JavaInstanceMember> members;
-    private Map<String, JavaInstanceMember> staticMembers;
-    private Map<String, JavaTypeInfo> innerType;
+    private Map<String, JavaStaticMember> staticMembers;
+    private JavaConstructorMember constructorMember;
 
-    public JavaTypeInfo(Class<?> javaClazz, Type superClazz, List<Type> interfaces, Map<String, JavaInstanceMember> members, Map<String, JavaInstanceMember> staticMembers, Map<String, JavaTypeInfo> innerType) {
+
+    public JavaTypeInfo(Class<?> javaClazz, Map<String, JavaInstanceMember> members, Map<String, JavaStaticMember> staticMembers, JavaConstructorMember constructorMember) {
         this.javaClazz = javaClazz;
-        this.superClazz = superClazz;
-        this.interfaces = interfaces;
         this.members = members;
         this.staticMembers = staticMembers;
-        this.innerType = innerType;
+        this.constructorMember = constructorMember;
     }
-
 
     public JavaInstanceMember findMember(String name) {
         return members.get(name);
+    }
+
+
+    private Multimap<String, JavaInstanceMember> parentMembers = null;
+
+    public Collection<JavaInstanceMember> findInheritedMembers(ResolveContext context, String name) {
+        if (parentMembers == null) {
+            parentMembers = HashMultimap.create();
+            JavaTypeInfo superclassInfo = context.get(javaClazz.getSuperclass());
+            if (superclassInfo != null) {
+                JavaInstanceMember member = superclassInfo.findMember(name);
+                if (member != null) {
+                    parentMembers.put(name, member);
+                } else {
+                    parentMembers.putAll(name, superclassInfo.findInheritedMembers(context, name));
+                }
+            }
+            for (Class<?> anInterface : javaClazz.getInterfaces()) {
+                JavaTypeInfo interfaceInfo = context.get(anInterface);
+                if (interfaceInfo != null) {
+                    JavaInstanceMember member = interfaceInfo.findMember(name);
+                    if (member != null) {
+                        parentMembers.put(name, member);
+                    } else {
+                        parentMembers.putAll(name, interfaceInfo.findInheritedMembers(context, name));
+                    }
+                }
+            }
+        }
+        Collection<JavaInstanceMember> result = parentMembers.get(name);
+        if (result == null) {
+            return Collections.emptyList();
+        }
+        return result;
+
     }
 
 
