@@ -1,21 +1,17 @@
 package com.warmthdawn.mod.kubejsgrammardump.utils;
 
-import com.warmthdawn.mod.kubejsgrammardump.collector.JavaClassCollector;
-import com.warmthdawn.mod.kubejsgrammardump.typescript.function.JSFunction;
+import com.warmthdawn.mod.kubejsdtsmaker.util.JSKeywords;
 import com.warmthdawn.mod.kubejsgrammardump.typescript.generic.ResolvedGenericType;
 import com.warmthdawn.mod.kubejsgrammardump.typescript.namespace.Namespace;
 import com.warmthdawn.mod.kubejsgrammardump.typescript.primitives.TSArray;
 import com.warmthdawn.mod.kubejsgrammardump.typescript.primitives.TSPrimitive;
 import com.warmthdawn.mod.kubejsgrammardump.typescript.type.IType;
-import com.warmthdawn.mod.kubejsgrammardump.typescript.type.JavaClass;
 import com.warmthdawn.mod.kubejsgrammardump.typescript.type.LazyType;
-import com.warmthdawn.mod.kubejsgrammardump.typescript.type.TypeAlias;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.lang.reflect.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class Utils {

@@ -1,4 +1,4 @@
-package com.warmthdawn.mod.kubejsgrammardump.utils;
+package com.warmthdawn.mod.kubejsdtsmaker.util;
 
 import com.google.common.collect.ImmutableSet;
 

@@ -46,13 +46,10 @@ public class JavaClassResolver {
     }
 
     public void resolve(@Nullable Class<?> clazz) {
-        if (clazz == null || clazz.isArray()) {
+        if (clazz == null || clazz.isArray() || clazz.isPrimitive()) {
             return;
         }
         if (clazz.isAnonymousClass() || clazz.isLocalClass() || !Modifier.isPublic(clazz.getModifiers())) {
-            return;
-        }
-        if (clazz == Object.class) {
             return;
         }
         if (context.isResolved(clazz)) {
@@ -185,8 +182,8 @@ public class JavaClassResolver {
             Map.Entry<String, JavaInstanceMember> entry = iterator.next();
             String name = entry.getKey();
             Collection<JavaInstanceMember> inheritedMembers = result.findInheritedMembers(context, name);
-            entry.getValue().resolveOverride(clazz, inheritedMembers);
-            if (entry.getValue().getField() == null && entry.getValue().getMethods() == null) {
+            boolean notEmpty = entry.getValue().resolveOverride(clazz, inheritedMembers);
+            if (!notEmpty) {
                 iterator.remove();
             }
         }

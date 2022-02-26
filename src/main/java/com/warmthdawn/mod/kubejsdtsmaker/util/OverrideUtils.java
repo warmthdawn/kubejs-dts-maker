@@ -5,6 +5,7 @@ import org.apache.commons.lang3.reflect.TypeUtils;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
 
 public class OverrideUtils {
 
@@ -21,7 +22,7 @@ public class OverrideUtils {
         Type[] otherPrmTypes = other.getParameterType();
         if (myPrmTypes.length != otherPrmTypes.length) return false;
         for (int i = 0; i < myPrmTypes.length; i++) {
-            if (!TypeUtils.isAssignable(myPrmTypes[i], otherPrmTypes[i])) return false;
+            if (!ATypeUtils.isAssignable(myPrmTypes[i], otherPrmTypes[i])) return false;
         }
         return true;
     }
@@ -42,11 +43,12 @@ public class OverrideUtils {
             return true;
         }
 
-        return TypeUtils.isAssignable(source.getReturnType(), other.getReturnType());
+        return ATypeUtils.isAssignable(source.getReturnType(), other.getReturnType());
     }
 
 
     public static boolean areReturnSame(MethodSignature source, MethodSignature other) {
         return TypeUtils.equals(source.getReturnType(), other.getReturnType());
     }
+
 }

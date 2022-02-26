@@ -1,4 +1,10 @@
 package com.warmthdawn.mod.kubejsdtsmaker.typescript.types;
 
-public interface NamedType {
+import com.warmthdawn.mod.kubejsdtsmaker.typescript.declaration.IDeclaration;
+
+import javax.annotation.Nonnull;
+
+public interface NamedType extends IDeclaration {
+    @Nonnull
+    String getIdentity();
 }

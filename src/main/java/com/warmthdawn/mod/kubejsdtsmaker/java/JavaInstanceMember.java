@@ -80,8 +80,11 @@ public class JavaInstanceMember {
 
     /**
      * 解析方法重写
+     *
+     * @return
      */
-    public void resolveOverride(Class<?> clazz, Collection<JavaInstanceMember> parentMembers) {
+    public boolean resolveOverride(Class<?> clazz, Collection<JavaInstanceMember> parentMembers) {
+        boolean emptyMember = true;
         for (JavaInstanceMember parentMember : parentMembers) {
             PropertySignature parentField = parentMember.getField();
             //字段：要求类型兼容
@@ -90,6 +93,7 @@ public class JavaInstanceMember {
                     actualField = parentField;
                 } else if (TypeUtils.isAssignable(selfField.getGenericType(), parentField.getType())) {
                     actualField = new PropertySignature(name, selfField);
+                    emptyMember = false;
                 } else {
                     actualField = parentField;
                     fieldConflict = true;
@@ -101,10 +105,14 @@ public class JavaInstanceMember {
         }
         if (actualField == null && selfField != null) {
             actualField = new PropertySignature(name, selfField);
+            emptyMember = false;
         }
 
         if (actualField == null) {
             actualField = this.bean;
+            if (actualField != null) {
+                emptyMember = false;
+            }
         }
 
         List<MethodSignature> evaluatedMethods = new ArrayList<>();
@@ -144,11 +152,14 @@ public class JavaInstanceMember {
                 }
                 if (!ignoreMethod) {
                     evaluatedMethods.add(signature);
+                    emptyMember = false;
                 }
             }
+            evaluatedMethods.addAll(parentMethods);
         } else if (selfMethods != null) {
             for (Method selfMethod : selfMethods) {
                 evaluatedMethods.add(new MethodSignature(selfMethod));
+                emptyMember = false;
             }
         } else {
             evaluatedMethods.addAll(parentMethods);
@@ -159,5 +170,7 @@ public class JavaInstanceMember {
         }
 
         resolved = true;
+
+        return !emptyMember;
     }
 }

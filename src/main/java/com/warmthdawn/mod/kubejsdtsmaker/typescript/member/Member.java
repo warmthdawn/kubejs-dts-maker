@@ -1,4 +1,7 @@
 package com.warmthdawn.mod.kubejsdtsmaker.typescript.member;
 
-public interface Member {
+import com.warmthdawn.mod.kubejsdtsmaker.typescript.declaration.IDeclaration;
+
+public interface Member extends IDeclaration {
+    String getName();
 }
