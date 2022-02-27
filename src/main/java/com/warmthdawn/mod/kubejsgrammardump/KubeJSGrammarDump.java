@@ -1,6 +1,5 @@
 package com.warmthdawn.mod.kubejsgrammardump;
 
-import com.warmthdawn.mod.kubejsgrammardump.collector.JavaClassCollector;
 import com.warmthdawn.mod.kubejsgrammardump.command.DumpCommand;
 import dev.latvian.kubejs.script.ScriptManager;
 import dev.latvian.kubejs.script.ScriptType;
@@ -31,7 +30,7 @@ public class KubeJSGrammarDump {
     private void preInit(FMLCommonSetupEvent t) {
         ScriptManager manager = new ScriptManager(ScriptType.STARTUP, null, null);
 
-        JavaClassCollector.INSTANCE.setClassFilter(manager);
+
     }
 
 

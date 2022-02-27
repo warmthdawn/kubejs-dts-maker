@@ -9,6 +9,14 @@ import java.util.List;
 public class TypeParameters implements ISignatureDeclaration {
     private final List<TypeParameter> parameters;
 
+    public List<TypeParameter> getParameters() {
+        return parameters;
+    }
+
+    public int paramsSize() {
+        return parameters.size();
+    }
+
     public TypeParameters(List<TypeParameter> parameters) {
         this.parameters = parameters;
     }

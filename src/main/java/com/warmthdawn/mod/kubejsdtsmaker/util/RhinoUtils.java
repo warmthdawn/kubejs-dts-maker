@@ -27,9 +27,11 @@ public class RhinoUtils {
         public void addSetter(Method setter) {
             this.hasSetter = true;
             this.type = setter.getGenericParameterTypes()[0];
+            this.owner = setter.getDeclaringClass();
         }
 
         private boolean hasSetter;
+        private Class<?> owner;
         private Type type;
         private boolean valid = true;
 
@@ -121,9 +123,15 @@ public class RhinoUtils {
 
         List<PropertySignature> res = new ArrayList<>();
         for (Map.Entry<String, BeanMethods> entry : result.entrySet()) {
+            if (entry.getKey().matches("^[0-9].*")) {
+                continue;
+            }
+            if (JSKeywords.isKeyword(entry.getKey())) {
+                continue;
+            }
             if (entry.getValue().valid) {
                 boolean readonly = !entry.getValue().hasSetter;
-                res.add(new PropertySignature(entry.getKey(), readonly, entry.getValue().type));
+                res.add(new PropertySignature(entry.getKey(), readonly, entry.getValue().type, entry.getValue().owner));
             }
         }
         return res;

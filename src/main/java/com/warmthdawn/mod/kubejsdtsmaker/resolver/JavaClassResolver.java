@@ -1,5 +1,7 @@
 package com.warmthdawn.mod.kubejsdtsmaker.resolver;
 
+import com.mojang.serialization.codecs.SimpleMapCodec;
+import com.mojang.serialization.codecs.UnboundedMapCodec;
 import com.warmthdawn.mod.kubejsdtsmaker.context.ResolveContext;
 import com.warmthdawn.mod.kubejsdtsmaker.java.*;
 import com.warmthdawn.mod.kubejsdtsmaker.util.PropertySignature;
@@ -28,7 +30,7 @@ public class JavaClassResolver {
     }
 
 
-    public static void resolve(List<Class<?>> classes, ResolveContext context, int iterCount) {
+    public static void resolve(Collection<Class<?>> classes, ResolveContext context, int iterCount) {
 
         Collection<Class<?>> classesToResolve = classes;
         for (int i = 0; i <= iterCount; i++) {
@@ -49,6 +51,9 @@ public class JavaClassResolver {
             return null;
         }
         if (clazz.isAnonymousClass() || clazz.isLocalClass() || !Modifier.isPublic(clazz.getModifiers())) {
+            return null;
+        }
+        if (context.getBlacklist().isBlacklisted(clazz)) {
             return null;
         }
         if (context.isResolved(clazz)) {
@@ -254,6 +259,10 @@ public class JavaClassResolver {
             addRelevant(method);
         }
         for (Field field : fields) {
+            int modifiers = field.getModifiers();
+            if (!Modifier.isPublic(modifiers) || Modifier.isTransient(modifiers)) {
+                continue;
+            }
             String name = remapMemberName(field);
             JavaInstanceMember member = members.computeIfAbsent(name, JavaInstanceMember::new);
             member.addField(field);

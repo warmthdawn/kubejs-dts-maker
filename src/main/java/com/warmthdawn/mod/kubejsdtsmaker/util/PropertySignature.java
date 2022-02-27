@@ -8,11 +8,13 @@ public class PropertySignature {
     private String name;
     private boolean readonly;
     private Type type;
+    private Class<?> originalClass;
 
-    public PropertySignature(String name, boolean readonly, Type type) {
+    public PropertySignature(String name, boolean readonly, Type type, Class<?> originalClass) {
         this.name = name;
         this.readonly = readonly;
         this.type = type;
+        this.originalClass = originalClass;
     }
 
     public PropertySignature(String name, Field field) {
@@ -20,6 +22,7 @@ public class PropertySignature {
         this.type = field.getGenericType();
         int modifiers = field.getModifiers();
         readonly = Modifier.isFinal(modifiers);
+        originalClass = field.getDeclaringClass();
     }
 
     public String getName() {
@@ -30,13 +33,13 @@ public class PropertySignature {
         return readonly;
     }
 
-    public void setReadonly(boolean readonly) {
-        this.readonly = readonly;
+    public Class<?> getOriginalClass() {
+        return originalClass;
     }
 
     public PropertySignature withoutReadonly() {
         if (this.readonly) {
-            return new PropertySignature(this.name, false, this.type);
+            return new PropertySignature(this.name, false, this.type, originalClass);
         }
         return this;
     }

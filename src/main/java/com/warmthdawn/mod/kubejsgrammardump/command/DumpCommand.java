@@ -4,10 +4,11 @@ import com.google.common.collect.ImmutableList;
 import com.mojang.brigadier.CommandDispatcher;
 import com.warmthdawn.mod.kubejsdtsmaker.builder.DeclarationBuilder;
 import com.warmthdawn.mod.kubejsdtsmaker.builder.TsTreeFactory;
+import com.warmthdawn.mod.kubejsdtsmaker.collector.WrappedBindingsEvent;
+import com.warmthdawn.mod.kubejsdtsmaker.context.GlobalTypeContext;
 import com.warmthdawn.mod.kubejsdtsmaker.context.ResolveContext;
 import com.warmthdawn.mod.kubejsdtsmaker.resolver.JavaClassResolver;
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.DeclarationFile;
-import com.warmthdawn.mod.kubejsgrammardump.collector.JavaClassCollector;
 import dev.latvian.kubejs.entity.EntityJS;
 import dev.latvian.kubejs.player.ChestEventJS;
 import net.minecraft.command.CommandSource;
@@ -18,7 +19,10 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 public class DumpCommand {
     public static void register(CommandDispatcher<CommandSource> dispatcher) {
@@ -28,10 +32,14 @@ public class DumpCommand {
             CommandSource commandsource = it.getSource();
             try {
 //                DeclarationBuilder.build();
+                GlobalTypeContext global = new GlobalTypeContext();
+                WrappedBindingsEvent.collectGlobals(global);
+                Set<Class<?>> classes = global.getReferencedClasses();
                 ResolveContext context = new ResolveContext();
-                JavaClassResolver.resolve(Collections.singletonList(ChestEventJS.class), context, 2);
-//                JavaClassResolver.resolve(Collections.singletonList(ImmutableList.class), context, 0);
+                JavaClassResolver.resolve(classes, context, 2);
+//                JavaClassResolver.resolve(Collections.singletonList(ArrayList.class), context, 0);
                 TsTreeFactory tsTreeFactory = new TsTreeFactory(context);
+
                 DeclarationFile file = tsTreeFactory.createFile();
                 DeclarationBuilder declarationBuilder = new DeclarationBuilder();
                 file.build(declarationBuilder);

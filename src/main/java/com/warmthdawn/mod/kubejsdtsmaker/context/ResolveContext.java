@@ -4,7 +4,6 @@ import com.warmthdawn.mod.kubejsdtsmaker.java.JavaTypeInfo;
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.types.PredefinedTypes;
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.types.TsType;
 import com.warmthdawn.mod.kubejsdtsmaker.util.MiscUtils;
-import com.warmthdawn.mod.kubejsgrammardump.typescript.type.IType;
 
 import java.util.HashMap;
 import java.util.List;
@@ -87,6 +86,6 @@ public class ResolveContext {
         wrappedObjects.put(Double.class, PredefinedTypes.NUMBER);
         wrappedObjects.put(float.class, PredefinedTypes.NUMBER);
         wrappedObjects.put(Float.class, PredefinedTypes.NUMBER);
-        wrappedObjects.put(Object.class, PredefinedTypes.OBJECT);
+        wrappedObjects.put(Object.class, PredefinedTypes.ANY);
     }
 }

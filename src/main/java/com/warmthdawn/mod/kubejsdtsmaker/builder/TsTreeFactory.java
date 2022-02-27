@@ -22,9 +22,7 @@ import com.warmthdawn.mod.kubejsdtsmaker.typescript.member.Member;
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.misc.CallSignature;
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.misc.TsConstructorSignature;
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.types.*;
-import com.warmthdawn.mod.kubejsdtsmaker.util.MethodSignature;
-import com.warmthdawn.mod.kubejsdtsmaker.util.MiscUtils;
-import com.warmthdawn.mod.kubejsdtsmaker.util.PropertySignature;
+import com.warmthdawn.mod.kubejsdtsmaker.util.*;
 import org.apache.commons.lang3.reflect.TypeUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -249,7 +247,7 @@ public class TsTreeFactory {
                 CallSignature callSignature = createCallSignature(method);
                 callSignatures.add(callSignature);
             }
-            callSignatures.sort(Comparator.comparingInt(it -> it.getParamsTypes().size()));
+            callSignatures.sort(MethodTypeUtils::compare);
         }
 
         if (field != null && callSignatures != null) {
@@ -280,6 +278,7 @@ public class TsTreeFactory {
                 CallSignature callSignature = createCallSignature(method);
                 callSignatures.add(callSignature);
             }
+            callSignatures.sort(MethodTypeUtils::compare);
         }
         if (possibleField != null && callSignatures != null) {
             TsType fieldType = createReferenceNonnull(possibleField.getType());

@@ -17,6 +17,14 @@ public class CallSignature implements IDeclaration {
         return paramsTypes;
     }
 
+    public TypeParameters getTypeParameters() {
+        return typeParameters;
+    }
+
+    public TsType getReturnType() {
+        return returnType;
+    }
+
     public CallSignature(List<TsType> paramsTypes, TypeParameters typeParameters, TsType returnType) {
         this.paramsTypes = paramsTypes;
         this.typeParameters = typeParameters;

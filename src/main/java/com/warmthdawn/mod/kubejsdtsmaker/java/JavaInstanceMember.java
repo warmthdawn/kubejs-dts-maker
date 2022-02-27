@@ -1,10 +1,10 @@
 package com.warmthdawn.mod.kubejsdtsmaker.java;
 
 import com.warmthdawn.mod.kubejsdtsmaker.context.ResolveBlacklist;
-import com.warmthdawn.mod.kubejsdtsmaker.context.ResolveContext;
+import com.warmthdawn.mod.kubejsdtsmaker.util.GenericUtils;
+import com.warmthdawn.mod.kubejsdtsmaker.util.MethodTypeUtils;
 import com.warmthdawn.mod.kubejsdtsmaker.util.PropertySignature;
 import com.warmthdawn.mod.kubejsdtsmaker.util.MethodSignature;
-import com.warmthdawn.mod.kubejsdtsmaker.util.OverrideUtils;
 import org.apache.commons.lang3.reflect.TypeUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -108,6 +108,7 @@ public class JavaInstanceMember {
         return 5;
     }
 
+
     /**
      * 解析方法重写
      *
@@ -139,9 +140,9 @@ public class JavaInstanceMember {
                 parentField = it;
             } else {
                 //可能冲突了
-                if (TypeUtils.isAssignable(parentField.getType(), it.getType())) {
+                if (GenericUtils.isAssignable(parentField, it, clazz)) {
                     hideMembers = false;
-                } else if (TypeUtils.isAssignable(it.getType(), parentField.getType())) {
+                } else if (GenericUtils.isAssignable(it, parentField, clazz)) {
                     parentField = it;
                     hideMembers = false;
                 } else {
@@ -154,7 +155,10 @@ public class JavaInstanceMember {
         if (parentField != null) {
             if (selfField == null) {
                 actualField = parentField;
-            } else if (TypeUtils.isAssignable(selfField.getGenericType(), parentField.getType())) {
+            } else if (GenericUtils.isAssignable(
+                selfField.getGenericType(),
+                parentField.getType(),
+                TypeUtils.getTypeArguments(clazz, parentField.getOriginalClass()))) {
                 actualField = new PropertySignature(name, selfField);
                 hideMembers = false;
             } else {
@@ -210,8 +214,7 @@ public class JavaInstanceMember {
                         for (MethodSignature method : methods) {
                             //遍历所有已经存在的方法
                             for (MethodSignature next : parentMethods) {
-                                Map<TypeVariable<?>, Type> arguments = TypeUtils.getTypeArguments(clazz, next.getRawMethod().getDeclaringClass());
-                                if (OverrideUtils.areSignatureSame(next, method, arguments)) {
+                                if (MethodTypeUtils.areSignatureSame(next, method, clazz)) {
                                     continue iter;
                                 }
                             }
@@ -236,8 +239,7 @@ public class JavaInstanceMember {
                             //这个方法不用写在子类了
                             iterator.remove();
                             //如果方法完全相同，忽略
-                            Map<TypeVariable<?>, Type> arguments = TypeUtils.getTypeArguments(clazz, next.getRawMethod().getDeclaringClass());
-                            if (OverrideUtils.areSignatureSame(signature, next, arguments)) {
+                            if (MethodTypeUtils.areSignatureSame(signature, next, clazz)) {
                                 flag = true;
                             }
                         }
@@ -247,11 +249,13 @@ public class JavaInstanceMember {
                     }
                 }
             }
-            evaluatedMethods.addAll(parentMethods);
+            for (MethodSignature parentMethod : parentMethods) {
+                evaluatedMethods.add(new MethodSignature(parentMethod, clazz));
+            }
         }
 
 
-        evaluatedMethods.removeIf(it->it.isBlacklisted(blacklist));
+        evaluatedMethods.removeIf(it -> it.isBlacklisted(blacklist));
 
         this.actualMethods = evaluatedMethods;
 

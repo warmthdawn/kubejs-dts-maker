@@ -81,24 +81,28 @@ public class GenericUtils {
     }
 
     public static boolean isSameType(Type first, Type second) {
+        return isSameTypeImpl(first, second, false);
+    }
+
+    private static boolean isSameTypeImpl(Type first, Type second, boolean ignoreBounds) {
         if (Objects.equals(first, second)) {
             return true;
         }
         if (first instanceof GenericArrayType && second instanceof GenericArrayType) {
-            return isSameType(((GenericArrayType) first).getGenericComponentType(), ((GenericArrayType) second).getGenericComponentType());
+            return isSameTypeImpl(((GenericArrayType) first).getGenericComponentType(), ((GenericArrayType) second).getGenericComponentType(), ignoreBounds);
         }
         if (first instanceof ParameterizedType && second instanceof ParameterizedType) {
             ParameterizedType a = (ParameterizedType) first;
             ParameterizedType b = (ParameterizedType) second;
-            return isSameType(a.getRawType(), b.getRawType())
-                && MiscUtils.all(a.getActualTypeArguments(), b.getActualTypeArguments(), GenericUtils::isSameType);
+            return isSameTypeImpl(a.getRawType(), b.getRawType(), ignoreBounds)
+                && MiscUtils.all(a.getActualTypeArguments(), b.getActualTypeArguments(), (f, s) -> isSameTypeImpl(f, s, ignoreBounds));
         }
         if (first instanceof TypeVariable && second instanceof TypeVariable) {
             TypeVariable<?> a = (TypeVariable<?>) first;
             TypeVariable<?> b = (TypeVariable<?>) second;
             if (a.getGenericDeclaration() instanceof Method && b.getGenericDeclaration() instanceof Method) {
-                //方法的就暂时忽略b 
-                return Objects.equals(a.getName(), b.getName());
+                //方法的就暂时忽略b
+                return MiscUtils.all(a.getBounds(), b.getBounds(), (f, s) -> isSameTypeImpl(f, s, true));
             }
             return Objects.equals(a.getGenericDeclaration(), b.getGenericDeclaration()) &&
                 Objects.equals(a.getName(), b.getName());
@@ -106,8 +110,8 @@ public class GenericUtils {
         if (first instanceof WildcardType && second instanceof WildcardType) {
             WildcardType a = (WildcardType) first;
             WildcardType b = (WildcardType) second;
-            return MiscUtils.all(a.getUpperBounds(), b.getUpperBounds(), GenericUtils::isSameType)
-                && MiscUtils.all(a.getLowerBounds(), b.getLowerBounds(), GenericUtils::isSameType);
+            return MiscUtils.all(a.getUpperBounds(), b.getUpperBounds(), (f, s) -> isSameTypeImpl(f, s, ignoreBounds))
+                && MiscUtils.all(a.getLowerBounds(), b.getLowerBounds(), (f, s) -> isSameTypeImpl(f, s, ignoreBounds));
         }
 
         return false;
@@ -174,5 +178,16 @@ public class GenericUtils {
         }
 
         return false;
+    }
+
+    public static boolean isAssignable(Type genericType, Type type, Map<TypeVariable<?>, Type> typeArguments) {
+        return ClassUtils.isAssignable(TypeUtils.getRawType(genericType, null), TypeUtils.getRawType(type, null));
+    }
+
+    public static boolean isAssignable(PropertySignature type, PropertySignature toType, Class<?> current) {
+        return TypeUtils.isAssignable(
+            TypeUtils.unrollVariables(TypeUtils.getTypeArguments(current, type.getOriginalClass()), type.getType()),
+            TypeUtils.unrollVariables(TypeUtils.getTypeArguments(current, toType.getOriginalClass()), toType.getType())
+        );
     }
 }

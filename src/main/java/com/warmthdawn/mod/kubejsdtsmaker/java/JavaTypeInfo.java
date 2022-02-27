@@ -56,14 +56,11 @@ public class JavaTypeInfo {
             Set<JavaInstanceMember> parentMember = new HashSet<>();
             JavaTypeInfo superclassInfo = context.get(javaClazz.getSuperclass());
             if (superclassInfo != null) {
-                for (Map.Entry<String, JavaInstanceMember> entry : superclassInfo.members.entrySet()) {
-
-                    JavaInstanceMember member = superclassInfo.findMember(name);
-                    if (member != null) {
-                        parentMember.add(member);
-                    } else {
-                        parentMember.addAll(superclassInfo.findInheritedMembers(context, name));
-                    }
+                JavaInstanceMember member = superclassInfo.findMember(name);
+                if (member != null) {
+                    parentMember.add(member);
+                } else {
+                    parentMember.addAll(superclassInfo.findInheritedMembers(context, name));
                 }
             }
             for (Class<?> anInterface : javaClazz.getInterfaces()) {

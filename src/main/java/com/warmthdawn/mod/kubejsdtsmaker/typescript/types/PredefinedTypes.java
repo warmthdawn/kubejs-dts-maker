@@ -4,15 +4,15 @@ import javax.annotation.Nonnull;
 
 public enum PredefinedTypes implements TsType {
     NEVER("never"),
-    ANY("any"),
-    UNKNOWN("unknown"),
-    VOID("void"),
     UNDEFINED("undefined"),
+    VOID("void"),
+    UNKNOWN("unknown"),
+    SYMBOL("symbol"),
+    BOOLEAN("boolean"),
     NUMBER("number"),
     STRING("string"),
-    BOOLEAN("boolean"),
-    SYMBOL("symbol"),
-    OBJECT("object");
+    OBJECT("object"),
+    ANY("any");
 
     PredefinedTypes(String name) {
         this.name = name;
