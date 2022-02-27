@@ -3,7 +3,6 @@ package com.warmthdawn.mod.kubejsdtsmaker.java;
 import com.warmthdawn.mod.kubejsdtsmaker.util.PropertySignature;
 import com.warmthdawn.mod.kubejsdtsmaker.util.MethodSignature;
 import com.warmthdawn.mod.kubejsdtsmaker.util.OverrideUtils;
-import org.apache.commons.lang3.reflect.MethodUtils;
 import org.apache.commons.lang3.reflect.TypeUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -116,6 +115,17 @@ public class JavaInstanceMember {
             }
         }
 
+        if (actualField == null || actualField.isReadonly()) {
+            for (JavaInstanceMember parentMember : parentMembers) {
+                PropertySignature parentField = parentMember.getField();
+                //字段：要求类型兼容
+                if (parentField != null && !parentField.isReadonly()) {
+                    actualField = parentField;
+                    emptyMember = false;
+                }
+            }
+        }
+
         List<MethodSignature> evaluatedMethods = new ArrayList<>();
         //方法解析
         //1.如果只有没继承的成员
@@ -137,21 +147,19 @@ public class JavaInstanceMember {
                     JavaInstanceMember parentMember = parentMembers.get(i);
                     List<MethodSignature> methods = parentMember.getMethods();
                     if (methods != null) {
+                        if (methods.size() != parentMethods.size()) {
+                            emptyMember = false;
+                        }
                         iter:
                         for (MethodSignature method : methods) {
                             //遍历所有已经存在的方法
-                            Iterator<MethodSignature> iterator = parentMethods.iterator();
-                            while (iterator.hasNext()) {
-                                MethodSignature next = iterator.next();
-                                if (OverrideUtils.areSignatureCovariant(next, method)) {
+                            for (MethodSignature next : parentMethods) {
+                                Map<TypeVariable<?>, Type> arguments = TypeUtils.getTypeArguments(clazz, next.getRawMethod().getDeclaringClass());
+                                if (OverrideUtils.areSignatureSame(next, method, arguments)) {
                                     continue iter;
-                                } else if (OverrideUtils.areSignatureCovariant(method, next)) {
-                                    iterator.remove();
-                                } else {
-                                    //出现不兼容的类型了，子类必须写
-                                    emptyMember = false;
                                 }
                             }
+                            emptyMember = false;
                             parentMethods.add(new MethodSignature(method, clazz));
                         }
                     }
@@ -162,22 +170,23 @@ public class JavaInstanceMember {
                 for (Method selfMethod : selfMethods) {
                     MethodSignature signature = new MethodSignature(selfMethod);
                     evaluatedMethods.add(signature);
+
+                    boolean flag = false;
                     Iterator<MethodSignature> iterator = parentMethods.iterator();
-                    boolean hasOverrides = false;
                     while (iterator.hasNext()) {
                         MethodSignature next = iterator.next();
                         //如果方法参数匹配（重写）
-                        if (OverrideUtils.areParametersCovariant(signature, next)) {
+                        if (signature.isOverridden(next)) {
                             //这个方法不用写在子类了
                             iterator.remove();
-                            hasOverrides = true;
                             //如果方法完全相同，忽略
-                            if (!OverrideUtils.areSignatureSame(signature, next)) {
-                                emptyMember = false;
+                            Map<TypeVariable<?>, Type> arguments = TypeUtils.getTypeArguments(clazz, next.getRawMethod().getDeclaringClass());
+                            if (OverrideUtils.areSignatureSame(signature, next, arguments)) {
+                                flag = true;
                             }
                         }
                     }
-                    if (!hasOverrides) {
+                    if (!flag) {
                         emptyMember = false;
                     }
                 }

@@ -29,8 +29,8 @@ public class DumpCommand {
             try {
 //                DeclarationBuilder.build();
                 ResolveContext context = new ResolveContext();
-//                JavaClassResolver.resolve(Collections.singletonList(ChestEventJS.class), context, 2);
-                JavaClassResolver.resolve(Collections.singletonList(ImmutableList.class), context, 0);
+                JavaClassResolver.resolve(Collections.singletonList(ChestEventJS.class), context, 2);
+//                JavaClassResolver.resolve(Collections.singletonList(ImmutableList.class), context, 0);
                 TsTreeFactory tsTreeFactory = new TsTreeFactory(context);
                 DeclarationFile file = tsTreeFactory.createFile();
                 DeclarationBuilder declarationBuilder = new DeclarationBuilder();

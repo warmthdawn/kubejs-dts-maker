@@ -205,11 +205,14 @@ public class TsTreeFactory {
             return new TsTypeVariable(((TypeVariable<?>) type).getName());
         }
         if (type instanceof WildcardType) {
+
             Type[] upperBounds = ((WildcardType) type).getUpperBounds();
             Set<TsType> boundTypes = new HashSet<>();
             for (Type bound : upperBounds) {
-                TsType reference = createReferenceNonnull(bound);
-                boundTypes.add(reference);
+                if(bound != Object.class) {
+                    TsType reference = createReferenceNonnull(bound);
+                    boundTypes.add(reference);
+                }
             }
             if (boundTypes.size() == 0) {
                 return PredefinedTypes.ANY;

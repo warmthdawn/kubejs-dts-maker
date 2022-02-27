@@ -36,4 +36,22 @@ public class CallSignature implements IDeclaration {
         builder.append("): ")
             .append(returnType);
     }
+
+
+    public void buildType(DeclarationBuilder builder) {
+        if (typeParameters != null) {
+            builder.append(typeParameters);
+        }
+        builder.append("(");
+        for (int i = 0; i < paramsTypes.size(); i++) {
+            builder.append("arg").append(String.valueOf(i))
+                .append(": ")
+                .append(paramsTypes.get(i));
+            if (i != paramsTypes.size() - 1) {
+                builder.append(", ");
+            }
+        }
+        builder.append(") => ")
+            .append(returnType);
+    }
 }

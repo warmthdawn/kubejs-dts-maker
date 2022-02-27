@@ -62,8 +62,8 @@ public class FieldAndMethodMember implements Member {
     private void buildMethodList(DeclarationBuilder builder) {
         if (methods.size() == 1) {
             //Output Example:
-            //(val: number): string
-            builder.append("{ ").append(methods.get(0)).append("} ");
+            //(val: number) => string
+            methods.get(0).buildType(builder);
         } else {
             //Output Example:
             //{

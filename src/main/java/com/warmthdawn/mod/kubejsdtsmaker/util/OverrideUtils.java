@@ -1,55 +1,29 @@
 package com.warmthdawn.mod.kubejsdtsmaker.util;
 
-import org.apache.commons.lang3.reflect.TypeUtils;
-
-import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
-import java.util.Iterator;
-import java.util.List;
+import java.util.Map;
 
 public class OverrideUtils {
-    public static boolean areSignatureSame(MethodSignature source, MethodSignature other) {
-        return areParametersSame(source, other) && areReturnSame(source, other);
+    public static boolean areSignatureSame(MethodSignature source, MethodSignature other, Map<TypeVariable<?>, Type> arguments) {
+        return areParametersSame(source, other, arguments) && areReturnSame(source, other, arguments);
     }
 
-    public static boolean areSignatureCovariant(MethodSignature source, MethodSignature other) {
-        return areParametersCovariant(source, other) && areReturnCovariant(source, other);
-    }
-
-    public static boolean areParametersCovariant(MethodSignature source, MethodSignature other) {
+    public static boolean areParametersSame(MethodSignature source, MethodSignature other, Map<TypeVariable<?>, Type> arguments) {
         Type[] myPrmTypes = source.getParameterType();
         Type[] otherPrmTypes = other.getParameterType();
         if (myPrmTypes.length != otherPrmTypes.length) return false;
         for (int i = 0; i < myPrmTypes.length; i++) {
-            if (!TypeUtils.isAssignable(myPrmTypes[i], otherPrmTypes[i])) return false;
+            Type otherParam = GenericUtils.unrollTypeArguments(arguments, otherPrmTypes[i]);
+            Type myParam = GenericUtils.unrollTypeArguments(arguments, myPrmTypes[i]);
+            if (!GenericUtils.isSameType(myParam, otherParam)) return false;
         }
         return true;
     }
 
-    public static boolean areParametersSame(MethodSignature source, MethodSignature other) {
-        Type[] myPrmTypes = source.getParameterType();
-        Type[] otherPrmTypes = other.getParameterType();
-        if (myPrmTypes.length != otherPrmTypes.length) return false;
-        for (int i = 0; i < myPrmTypes.length; i++) {
-            if (!TypeUtils.equals(myPrmTypes[i], otherPrmTypes[i])) return false;
-        }
-        return true;
-    }
-
-
-    public static boolean areReturnCovariant(MethodSignature source, MethodSignature other) {
-        if (other.getReturnType() == void.class) {
-            return true;
-        }
-
-        return TypeUtils.isAssignable(source.getReturnType(), other.getReturnType());
-    }
-
-
-    public static boolean areReturnSame(MethodSignature source, MethodSignature other) {
-        return TypeUtils.equals(source.getReturnType(), other.getReturnType());
+    public static boolean areReturnSame(MethodSignature source, MethodSignature other, Map<TypeVariable<?>, Type> arguments) {
+        return GenericUtils.isSameType(GenericUtils.unrollTypeArguments(arguments, source.getReturnType()),
+            GenericUtils.unrollTypeArguments(arguments, other.getReturnType()));
     }
 
 }
