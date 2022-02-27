@@ -30,6 +30,17 @@ public class PropertySignature {
         return readonly;
     }
 
+    public void setReadonly(boolean readonly) {
+        this.readonly = readonly;
+    }
+
+    public PropertySignature withoutReadonly() {
+        if (this.readonly) {
+            return new PropertySignature(this.name, false, this.type);
+        }
+        return this;
+    }
+
     public Type getType() {
         return type;
     }

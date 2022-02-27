@@ -114,7 +114,7 @@ public class TsTreeFactory {
             if (parents.size() == 1) {
                 return new TypeAliasDeclaration(name, parents.get(0), typeParameters);
             }
-            UnionType unionType = new UnionType(parents);
+            IntersectionType unionType = new IntersectionType(parents);
             return new TypeAliasDeclaration(javaClazz.getSimpleName(), unionType, typeParameters);
         }
 
@@ -209,7 +209,7 @@ public class TsTreeFactory {
             Type[] upperBounds = ((WildcardType) type).getUpperBounds();
             Set<TsType> boundTypes = new HashSet<>();
             for (Type bound : upperBounds) {
-                if(bound != Object.class) {
+                if (bound != Object.class) {
                     TsType reference = createReferenceNonnull(bound);
                     boundTypes.add(reference);
                 }
@@ -249,6 +249,7 @@ public class TsTreeFactory {
                 CallSignature callSignature = createCallSignature(method);
                 callSignatures.add(callSignature);
             }
+            callSignatures.sort(Comparator.comparingInt(it -> it.getParamsTypes().size()));
         }
 
         if (field != null && callSignatures != null) {

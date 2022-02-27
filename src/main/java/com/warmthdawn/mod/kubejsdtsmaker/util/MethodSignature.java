@@ -1,6 +1,7 @@
 package com.warmthdawn.mod.kubejsdtsmaker.util;
 
 
+import com.warmthdawn.mod.kubejsdtsmaker.context.ResolveBlacklist;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.reflect.MethodUtils;
 import org.apache.commons.lang3.reflect.TypeUtils;
@@ -93,6 +94,16 @@ public class MethodSignature {
 
     public boolean isOverridden(MethodSignature method) {
         return isOverridden(method.rawMethod);
+    }
+
+
+    public boolean isBlacklisted(ResolveBlacklist blacklist) {
+        for (Method method : getOverrideHierarchy()) {
+            if (blacklist.isBlacklisted(method.getDeclaringClass())) {
+                return true;
+            }
+        }
+        return false;
     }
 
 

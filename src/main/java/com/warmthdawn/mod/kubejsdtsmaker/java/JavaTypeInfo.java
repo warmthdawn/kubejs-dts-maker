@@ -1,7 +1,5 @@
 package com.warmthdawn.mod.kubejsdtsmaker.java;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
 import com.warmthdawn.mod.kubejsdtsmaker.context.ResolveContext;
 
 import java.util.*;
@@ -11,6 +9,7 @@ public class JavaTypeInfo {
     private Map<String, JavaInstanceMember> members;
     private Map<String, JavaStaticMember> staticMembers;
     private JavaConstructorMember constructorMember;
+    private Set<String> memberKeys;
 
     public Map<String, JavaInstanceMember> getMembers() {
         return members;
@@ -28,11 +27,13 @@ public class JavaTypeInfo {
         return constructorMember;
     }
 
-    public JavaTypeInfo(Class<?> javaClazz, Map<String, JavaInstanceMember> members, Map<String, JavaStaticMember> staticMembers, JavaConstructorMember constructorMember) {
+    public JavaTypeInfo(Class<?> javaClazz, Map<String, JavaInstanceMember> members, Map<String, JavaStaticMember> staticMembers, JavaConstructorMember constructorMember, Set<String> memberKeys) {
         this.javaClazz = javaClazz;
         this.members = members;
         this.staticMembers = staticMembers;
         this.constructorMember = constructorMember;
+        this.memberKeys = memberKeys;
+        memberKeys.addAll(members.keySet());
     }
 
     public JavaInstanceMember findMember(String name) {
@@ -41,6 +42,10 @@ public class JavaTypeInfo {
 
 
     private Map<String, List<JavaInstanceMember>> parentMembers = null;
+
+    public Set<String> getMemberKeys() {
+        return memberKeys;
+    }
 
     public List<JavaInstanceMember> findInheritedMembers(ResolveContext context, String name) {
         if (parentMembers == null) {

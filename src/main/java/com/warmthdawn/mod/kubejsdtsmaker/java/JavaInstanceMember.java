@@ -1,5 +1,7 @@
 package com.warmthdawn.mod.kubejsdtsmaker.java;
 
+import com.warmthdawn.mod.kubejsdtsmaker.context.ResolveBlacklist;
+import com.warmthdawn.mod.kubejsdtsmaker.context.ResolveContext;
 import com.warmthdawn.mod.kubejsdtsmaker.util.PropertySignature;
 import com.warmthdawn.mod.kubejsdtsmaker.util.MethodSignature;
 import com.warmthdawn.mod.kubejsdtsmaker.util.OverrideUtils;
@@ -78,52 +80,106 @@ public class JavaInstanceMember {
         this.bean = bean;
     }
 
+    public int getType() {
+        //0: no field and method
+        //1: method without field
+        //2: readonly field without method
+        //3: writable field without method
+        //4: readonly field and method
+        //5: writable field and method
+        boolean noField = getField() == null;
+        boolean noMethod = getMethods() == null || getMethods().isEmpty();
+
+        if (noField && noMethod) {
+            return 0;
+        }
+        if (noField) {
+            return 1;
+        }
+        if (noMethod) {
+            if (getField().isReadonly()) {
+                return 2;
+            }
+            return 3;
+        }
+        if (getField().isReadonly()) {
+            return 4;
+        }
+        return 5;
+    }
+
     /**
      * 解析方法重写
      *
      * @return
      */
-    public boolean resolveOverride(Class<?> clazz, List<JavaInstanceMember> parentMembers) {
-        boolean emptyMember = true;
+    public boolean resolveOverride(ResolveBlacklist blacklist, Class<?> clazz, List<JavaInstanceMember> parentMembers) {
+        boolean hideMembers = true;
+        //check parent conflict
+        int currentType = -1;
         for (JavaInstanceMember parentMember : parentMembers) {
-            PropertySignature parentField = parentMember.getField();
-            //字段：要求类型兼容
-            if (parentField != null) {
-                if (selfField == null) {
-                    actualField = parentField;
-                } else if (TypeUtils.isAssignable(selfField.getGenericType(), parentField.getType())) {
-                    actualField = new PropertySignature(name, selfField);
-                    emptyMember = false;
-                } else {
-                    actualField = parentField;
-                    fieldConflict = true;
-                    logger.error("Field {} in class {} is conflict to superclass", name, selfField.getDeclaringClass().getName());
-                }
-                //理论上不可能有多个字段的
-                break;
+            if (currentType == -1) {
+                currentType = parentMember.getType();
+            } else if (currentType != parentMember.getType()) {
+                hideMembers = false;
             }
         }
+
+        PropertySignature parentField = null;
+        boolean readonly = true;
+        for (JavaInstanceMember parentMember : parentMembers) {
+            PropertySignature it = parentMember.getField();
+            if (it == null) {
+                continue;
+            }
+            if (!it.isReadonly()) {
+                readonly = false;
+            }
+            if (parentField == null) {
+                parentField = it;
+            } else {
+                //可能冲突了
+                if (TypeUtils.isAssignable(parentField.getType(), it.getType())) {
+                    hideMembers = false;
+                } else if (TypeUtils.isAssignable(it.getType(), parentField.getType())) {
+                    parentField = it;
+                    hideMembers = false;
+                } else {
+                    fieldConflict = true;
+                    logger.error("Field {} in class {} is ambiguous between parents", name, selfField.getDeclaringClass().getName());
+                }
+            }
+        }
+
+        if (parentField != null) {
+            if (selfField == null) {
+                actualField = parentField;
+            } else if (TypeUtils.isAssignable(selfField.getGenericType(), parentField.getType())) {
+                actualField = new PropertySignature(name, selfField);
+                hideMembers = false;
+            } else {
+                actualField = parentField;
+                fieldConflict = true;
+                logger.error("Field {} in class {} is conflict to superclass", name, selfField.getDeclaringClass().getName());
+            }
+        }
+
+
         if (actualField == null && selfField != null) {
             actualField = new PropertySignature(name, selfField);
-            emptyMember = false;
+            hideMembers = false;
         }
 
         if (actualField == null) {
             actualField = this.bean;
             if (actualField != null) {
-                emptyMember = false;
+                hideMembers = false;
             }
         }
 
-        if (actualField == null || actualField.isReadonly()) {
-            for (JavaInstanceMember parentMember : parentMembers) {
-                PropertySignature parentField = parentMember.getField();
-                //字段：要求类型兼容
-                if (parentField != null && !parentField.isReadonly()) {
-                    actualField = parentField;
-                    emptyMember = false;
-                }
-            }
+        if (actualField != null && !readonly && actualField.isReadonly()) {
+            actualField = actualField.withoutReadonly();
+            hideMembers = false;
         }
 
         List<MethodSignature> evaluatedMethods = new ArrayList<>();
@@ -133,7 +189,7 @@ public class JavaInstanceMember {
             if (selfMethods != null) {
                 for (Method selfMethod : selfMethods) {
                     evaluatedMethods.add(new MethodSignature(selfMethod));
-                    emptyMember = false;
+                    hideMembers = false;
                 }
             }
 
@@ -148,7 +204,7 @@ public class JavaInstanceMember {
                     List<MethodSignature> methods = parentMember.getMethods();
                     if (methods != null) {
                         if (methods.size() != parentMethods.size()) {
-                            emptyMember = false;
+                            hideMembers = false;
                         }
                         iter:
                         for (MethodSignature method : methods) {
@@ -159,7 +215,7 @@ public class JavaInstanceMember {
                                     continue iter;
                                 }
                             }
-                            emptyMember = false;
+                            hideMembers = false;
                             parentMethods.add(new MethodSignature(method, clazz));
                         }
                     }
@@ -187,17 +243,20 @@ public class JavaInstanceMember {
                         }
                     }
                     if (!flag) {
-                        emptyMember = false;
+                        hideMembers = false;
                     }
                 }
             }
             evaluatedMethods.addAll(parentMethods);
         }
 
+
+        evaluatedMethods.removeIf(it->it.isBlacklisted(blacklist));
+
         this.actualMethods = evaluatedMethods;
 
         resolved = true;
 
-        return !emptyMember;
+        return !hideMembers;
     }
 }

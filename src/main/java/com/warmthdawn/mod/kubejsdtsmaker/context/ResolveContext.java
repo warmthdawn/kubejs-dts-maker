@@ -18,9 +18,11 @@ public class ResolveContext {
     }
 
     private final GlobalTypeScope typeScope;
+    private ResolveBlacklist blacklist;
 
     public ResolveContext() {
         typeScope = new GlobalTypeScope();
+        blacklist = new ResolveBlacklist();
         typeInfos = new HashMap<>();
         initPrimitive();
     }
@@ -40,6 +42,9 @@ public class ResolveContext {
         if (wrappedObjects.containsKey(clazz)) {
             return false;
         }
+        if (blacklist.isBlacklisted(clazz)) {
+            return false;
+        }
         return isResolved(clazz);
     }
 
@@ -52,6 +57,9 @@ public class ResolveContext {
         typeScope.put(MiscUtils.getNamespace(clazz), clazz.getSimpleName());
     }
 
+    public ResolveBlacklist getBlacklist() {
+        return blacklist;
+    }
 
     private final HashMap<Class<?>, TsType> wrappedObjects = new HashMap<>();
 

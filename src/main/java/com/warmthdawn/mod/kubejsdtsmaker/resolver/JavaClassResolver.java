@@ -9,7 +9,6 @@ import dev.latvian.mods.rhino.util.HideFromJS;
 import dev.latvian.mods.rhino.util.RemapForJS;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.lwjgl.system.CallbackI;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -45,19 +44,19 @@ public class JavaClassResolver {
 
     }
 
-    public void resolve(@Nullable Class<?> clazz) {
+    public JavaTypeInfo resolve(@Nullable Class<?> clazz) {
         if (clazz == null || clazz.isArray() || clazz.isPrimitive()) {
-            return;
+            return null;
         }
         if (clazz.isAnonymousClass() || clazz.isLocalClass() || !Modifier.isPublic(clazz.getModifiers())) {
-            return;
+            return null;
         }
         if (context.isResolved(clazz)) {
-            return;
+            return context.get(clazz);
         }
         if (resolvingClass.contains(clazz)) {
             logger.error("trying to resolve a resolving class, there might be an error!");
-            return;
+            return null;
         }
         resolvingClass.add(clazz);
         relevantClasses.remove(clazz);
@@ -84,17 +83,23 @@ public class JavaClassResolver {
         }
 
 
+        HashSet<String> memberKeys = new HashSet<>();
         if (!clazz.isInterface()) {
             Class<?> superclass = clazz.getSuperclass();
-            resolve(superclass);
+            JavaTypeInfo resolve = resolve(superclass);
+            if (resolve != null)
+                memberKeys.addAll(resolve.getMemberKeys());
         }
         for (Class<?> clazzInterface : clazz.getInterfaces()) {
-            resolve(clazzInterface);
+            JavaTypeInfo resolve = resolve(clazzInterface);
+            if (resolve != null)
+                memberKeys.addAll(resolve.getMemberKeys());
         }
 
-        JavaTypeInfo resolved = doResolve(clazz);
+        JavaTypeInfo resolved = doResolve(clazz, memberKeys);
         context.add(clazz, resolved);
         resolvingClass.remove(clazz);
+        return resolved;
     }
 
     private final Set<Class<?>> relevantClasses = new HashSet<>();
@@ -164,7 +169,8 @@ public class JavaClassResolver {
         return member.getName();
     }
 
-    private JavaTypeInfo doResolve(Class<?> clazz) {
+    private JavaTypeInfo doResolve(Class<?> clazz, HashSet<String> memberKeys) {
+
 
         Map<String, JavaInstanceMember> members = new HashMap<>();
         Map<String, JavaStaticMember> staticMembers = new HashMap<>();
@@ -174,19 +180,35 @@ public class JavaClassResolver {
         if (!clazz.isInterface() && !Modifier.isAbstract(clazz.getModifiers())) {
             constructorMember = doResolveConstructors(clazz);
         }
-        JavaTypeInfo result = new JavaTypeInfo(clazz, members, staticMembers, constructorMember);
+
+        JavaTypeInfo result = new JavaTypeInfo(clazz, members, staticMembers, constructorMember, memberKeys);
         //解析方法重写
 
+        HashSet<String> visited = new HashSet<>();
         Iterator<Map.Entry<String, JavaInstanceMember>> iterator = members.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<String, JavaInstanceMember> entry = iterator.next();
             String name = entry.getKey();
+            visited.add(name);
             List<JavaInstanceMember> inheritedMembers = result.findInheritedMembers(context, name);
-            boolean notEmpty = entry.getValue().resolveOverride(clazz, inheritedMembers);
+            boolean notEmpty = entry.getValue().resolveOverride(context.getBlacklist(), clazz, inheritedMembers);
             if (!notEmpty) {
                 iterator.remove();
             }
         }
+        HashSet<String> otherKeys = new HashSet<>(memberKeys);
+        otherKeys.removeAll(visited);
+
+
+        for (String memberKey : otherKeys) {
+            List<JavaInstanceMember> inheritedMembers = result.findInheritedMembers(context, memberKey);
+            JavaInstanceMember member = new JavaInstanceMember(memberKey);
+            boolean notEmpty = member.resolveOverride(context.getBlacklist(), clazz, inheritedMembers);
+            if (notEmpty) {
+                members.put(memberKey, member);
+            }
+        }
+
         return result;
 
     }

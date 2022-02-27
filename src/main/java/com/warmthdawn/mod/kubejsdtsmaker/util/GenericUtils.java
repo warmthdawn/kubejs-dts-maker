@@ -49,7 +49,7 @@ public class GenericUtils {
     }
 
     public static Type unrollTypeArguments(Map<TypeVariable<?>, Type> arguments, Type type) {
-        if(arguments == null) {
+        if (arguments == null) {
             arguments = Collections.emptyMap();
         }
         if (type instanceof TypeVariable) {
@@ -96,6 +96,10 @@ public class GenericUtils {
         if (first instanceof TypeVariable && second instanceof TypeVariable) {
             TypeVariable<?> a = (TypeVariable<?>) first;
             TypeVariable<?> b = (TypeVariable<?>) second;
+            if (a.getGenericDeclaration() instanceof Method && b.getGenericDeclaration() instanceof Method) {
+                //方法的就暂时忽略b 
+                return Objects.equals(a.getName(), b.getName());
+            }
             return Objects.equals(a.getGenericDeclaration(), b.getGenericDeclaration()) &&
                 Objects.equals(a.getName(), b.getName());
         }
@@ -124,7 +128,7 @@ public class GenericUtils {
 
                 return false;
             }
-            if(sub instanceof WildcardType) {
+            if (sub instanceof WildcardType) {
 
             }
 

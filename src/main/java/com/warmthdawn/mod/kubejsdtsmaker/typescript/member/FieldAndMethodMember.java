@@ -63,7 +63,8 @@ public class FieldAndMethodMember implements Member {
         if (methods.size() == 1) {
             //Output Example:
             //(val: number) => string
-            methods.get(0).buildType(builder);
+            methods.get(0).buildType(builder.append("("));
+            builder.append(")");
         } else {
             //Output Example:
             //{
