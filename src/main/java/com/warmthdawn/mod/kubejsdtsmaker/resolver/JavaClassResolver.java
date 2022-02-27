@@ -181,7 +181,7 @@ public class JavaClassResolver {
         while (iterator.hasNext()) {
             Map.Entry<String, JavaInstanceMember> entry = iterator.next();
             String name = entry.getKey();
-            Collection<JavaInstanceMember> inheritedMembers = result.findInheritedMembers(context, name);
+            List<JavaInstanceMember> inheritedMembers = result.findInheritedMembers(context, name);
             boolean notEmpty = entry.getValue().resolveOverride(clazz, inheritedMembers);
             if (!notEmpty) {
                 iterator.remove();

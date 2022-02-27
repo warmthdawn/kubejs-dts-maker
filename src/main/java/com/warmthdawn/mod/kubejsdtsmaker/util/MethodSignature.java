@@ -28,20 +28,25 @@ public class MethodSignature {
     }
 
     public MethodSignature(Method method) {
-        this.returnType = method.getGenericReturnType();
-        this.parameterType = method.getGenericParameterTypes();
+        this.returnType = GenericUtils.unrollTypeArguments(null, method.getGenericReturnType());
+        Type[] parameterTypes = method.getGenericParameterTypes();
+        this.parameterType = new Type[parameterTypes.length];
+        for (int i = 0; i < parameterType.length; i++) {
+            parameterType[i] = GenericUtils.unrollTypeArguments(null, parameterTypes[i]);
+        }
         this.variables = method.getTypeParameters();
         this.declaringClass = method.getDeclaringClass();
     }
+
     public MethodSignature(Method method, Class<?> type) {
         Map<TypeVariable<?>, Type> typeArguments = TypeUtils.getTypeArguments(type, method.getDeclaringClass());
 
-        this.returnType = TypeUtils.unrollVariables(typeArguments, method.getGenericReturnType());
+        this.returnType = GenericUtils.unrollTypeArguments(typeArguments, method.getGenericReturnType());
         Type[] parameterTypes = method.getGenericParameterTypes();
 
         this.parameterType = new Type[parameterTypes.length];
         for (int i = 0; i < parameterType.length; i++) {
-            parameterType[i] = TypeUtils.unrollVariables(typeArguments, parameterTypes[i]);
+            parameterType[i] = GenericUtils.unrollTypeArguments(typeArguments, parameterTypes[i]);
         }
         this.variables = method.getTypeParameters();
         this.declaringClass = method.getDeclaringClass();
@@ -50,12 +55,12 @@ public class MethodSignature {
     public MethodSignature(MethodSignature method, Class<?> type) {
         Map<TypeVariable<?>, Type> typeArguments = TypeUtils.getTypeArguments(type, method.declaringClass);
 
-        this.returnType = TypeUtils.unrollVariables(typeArguments, method.getReturnType());
+        this.returnType = GenericUtils.unrollTypeArguments(typeArguments, method.getReturnType());
         Type[] parameterTypes = method.getParameterType();
 
         this.parameterType = new Type[parameterTypes.length];
         for (int i = 0; i < parameterType.length; i++) {
-            parameterType[i] = TypeUtils.unrollVariables(typeArguments, parameterTypes[i]);
+            parameterType[i] = GenericUtils.unrollTypeArguments(typeArguments, parameterTypes[i]);
         }
         this.variables = method.getVariables();
         this.declaringClass = method.declaringClass;

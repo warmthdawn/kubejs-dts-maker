@@ -3,6 +3,7 @@ package com.warmthdawn.mod.kubejsdtsmaker.java;
 import com.warmthdawn.mod.kubejsdtsmaker.util.PropertySignature;
 import com.warmthdawn.mod.kubejsdtsmaker.util.MethodSignature;
 import com.warmthdawn.mod.kubejsdtsmaker.util.OverrideUtils;
+import org.apache.commons.lang3.reflect.MethodUtils;
 import org.apache.commons.lang3.reflect.TypeUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -83,7 +84,7 @@ public class JavaInstanceMember {
      *
      * @return
      */
-    public boolean resolveOverride(Class<?> clazz, Collection<JavaInstanceMember> parentMembers) {
+    public boolean resolveOverride(Class<?> clazz, List<JavaInstanceMember> parentMembers) {
         boolean emptyMember = true;
         for (JavaInstanceMember parentMember : parentMembers) {
             PropertySignature parentField = parentMember.getField();
@@ -116,58 +117,75 @@ public class JavaInstanceMember {
         }
 
         List<MethodSignature> evaluatedMethods = new ArrayList<>();
-        List<MethodSignature> parentMethods = new ArrayList<>();
-        for (JavaInstanceMember parentMember : parentMembers) {
-            List<MethodSignature> methods = parentMember.getMethods();
-            //方法：剔除子类方法签名完全一致的方法，剔除父类重写的方法
-            if (methods != null) {
-                iter:
-                for (MethodSignature method : methods) {
-                    for (MethodSignature parentMethod : parentMethods) {
-                        if (OverrideUtils.areSignatureSame(parentMethod, method)) {
-                            continue iter;
-                        }
-                    }
-                    parentMethods.add(new MethodSignature(method, clazz));
-                }
-            }
-        }
-
-        if (selfMethods != null && !parentMethods.isEmpty()) {
-            for (Method selfMethod : selfMethods) {
-                MethodSignature signature = new MethodSignature(selfMethod);
-                Iterator<MethodSignature> iterator = parentMethods.iterator();
-                boolean ignoreMethod = false;
-                while (iterator.hasNext()) {
-                    MethodSignature next = iterator.next();
-                    //如果方法参数匹配（重写）
-                    if (OverrideUtils.areParametersCovariant(signature, next)) {
-                        //这个方法不用写在子类了
-                        iterator.remove();
-                        //如果方法完全相同，忽略
-                        if (OverrideUtils.areSignatureSame(signature, next)) {
-                            ignoreMethod = true;
-                        }
-                    }
-                }
-                if (!ignoreMethod) {
-                    evaluatedMethods.add(signature);
+        //方法解析
+        //1.如果只有没继承的成员
+        if (parentMembers.size() == 0) {
+            if (selfMethods != null) {
+                for (Method selfMethod : selfMethods) {
+                    evaluatedMethods.add(new MethodSignature(selfMethod));
                     emptyMember = false;
                 }
             }
-            evaluatedMethods.addAll(parentMethods);
-        } else if (selfMethods != null) {
-            for (Method selfMethod : selfMethods) {
-                evaluatedMethods.add(new MethodSignature(selfMethod));
-                emptyMember = false;
-            }
+
         } else {
+            JavaInstanceMember firstMember = parentMembers.get(0);
+            List<MethodSignature> parentMethods = new ArrayList<>(firstMember.getMethods());
+            //有继承的成员，无论如何都要计算出方法实际上应该表现出来的成员
+            //2.如果只有一个父成员
+            if (parentMembers.size() > 1) {
+                for (int i = 1; i < parentMembers.size(); i++) {
+                    JavaInstanceMember parentMember = parentMembers.get(i);
+                    List<MethodSignature> methods = parentMember.getMethods();
+                    if (methods != null) {
+                        iter:
+                        for (MethodSignature method : methods) {
+                            //遍历所有已经存在的方法
+                            Iterator<MethodSignature> iterator = parentMethods.iterator();
+                            while (iterator.hasNext()) {
+                                MethodSignature next = iterator.next();
+                                if (OverrideUtils.areSignatureCovariant(next, method)) {
+                                    continue iter;
+                                } else if (OverrideUtils.areSignatureCovariant(method, next)) {
+                                    iterator.remove();
+                                } else {
+                                    //出现不兼容的类型了，子类必须写
+                                    emptyMember = false;
+                                }
+                            }
+                            parentMethods.add(new MethodSignature(method, clazz));
+                        }
+                    }
+                }
+            }
+
+            if (selfMethods != null) {
+                for (Method selfMethod : selfMethods) {
+                    MethodSignature signature = new MethodSignature(selfMethod);
+                    evaluatedMethods.add(signature);
+                    Iterator<MethodSignature> iterator = parentMethods.iterator();
+                    boolean hasOverrides = false;
+                    while (iterator.hasNext()) {
+                        MethodSignature next = iterator.next();
+                        //如果方法参数匹配（重写）
+                        if (OverrideUtils.areParametersCovariant(signature, next)) {
+                            //这个方法不用写在子类了
+                            iterator.remove();
+                            hasOverrides = true;
+                            //如果方法完全相同，忽略
+                            if (!OverrideUtils.areSignatureSame(signature, next)) {
+                                emptyMember = false;
+                            }
+                        }
+                    }
+                    if (!hasOverrides) {
+                        emptyMember = false;
+                    }
+                }
+            }
             evaluatedMethods.addAll(parentMethods);
         }
 
-        if (evaluatedMethods.size() != 0) {
-            this.actualMethods = evaluatedMethods;
-        }
+        this.actualMethods = evaluatedMethods;
 
         resolved = true;
 

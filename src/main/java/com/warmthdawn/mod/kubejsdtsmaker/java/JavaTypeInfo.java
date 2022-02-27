@@ -40,9 +40,9 @@ public class JavaTypeInfo {
     }
 
 
-    private Map<String, Set<JavaInstanceMember>> parentMembers = null;
+    private Map<String, List<JavaInstanceMember>> parentMembers = null;
 
-    public Collection<JavaInstanceMember> findInheritedMembers(ResolveContext context, String name) {
+    public List<JavaInstanceMember> findInheritedMembers(ResolveContext context, String name) {
         if (parentMembers == null) {
             parentMembers = new HashMap<>();
         }
@@ -73,7 +73,7 @@ public class JavaTypeInfo {
                 }
             }
 
-            parentMembers.put(name, parentMember);
+            parentMembers.put(name, new ArrayList<>(parentMember));
         }
 
         return parentMembers.get(name);
