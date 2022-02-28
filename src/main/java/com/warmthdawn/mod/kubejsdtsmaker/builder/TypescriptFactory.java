@@ -9,6 +9,7 @@ import com.warmthdawn.mod.kubejsdtsmaker.java.JavaConstructorMember;
 import com.warmthdawn.mod.kubejsdtsmaker.java.JavaInstanceMember;
 import com.warmthdawn.mod.kubejsdtsmaker.java.JavaStaticMember;
 import com.warmthdawn.mod.kubejsdtsmaker.java.JavaTypeInfo;
+import com.warmthdawn.mod.kubejsdtsmaker.resolver.MethodParameterNameResolver;
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.DeclarationFile;
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.Namespace;
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.declaration.IDeclaration;
@@ -33,11 +34,13 @@ import java.util.*;
 public class TypescriptFactory {
     private final ResolveContext context;
     private final BuildContext buildContext;
+    private final MethodParameterNameResolver parameterNameResolver;
     private static final Logger logger = LogManager.getLogger();
 
-    public TypescriptFactory(ResolveContext context, BuildContext buildContext) {
+    public TypescriptFactory(ResolveContext context, BuildContext buildContext, MethodParameterNameResolver parameterNameResolver) {
         this.context = context;
         this.buildContext = buildContext;
+        this.parameterNameResolver = parameterNameResolver;
     }
 
     public BuildContext getBuildContext() {
@@ -352,7 +355,8 @@ public class TypescriptFactory {
         for (Type type : method.getParameterType()) {
             paramsTypes.add(createReferenceNonnull(type));
         }
-        return new CallSignature(paramsTypes, typeParameters, returnType);
+        List<String> parameterNames = parameterNameResolver.find(method.getRawMethod());
+        return new CallSignature(paramsTypes, typeParameters, returnType, parameterNames);
     }
 
 
@@ -364,7 +368,8 @@ public class TypescriptFactory {
         for (Type type : method.getGenericParameterTypes()) {
             paramsTypes.add(createReferenceNonnull(type));
         }
-        return new CallSignature(paramsTypes, typeParameters, returnType);
+        List<String> parameterNames = parameterNameResolver.find(method);
+        return new CallSignature(paramsTypes, typeParameters, returnType, parameterNames);
     }
 
     public TsConstructorSignature createConstructorSignature(Constructor<?> constructor, Class<?> clazz) {
@@ -378,7 +383,9 @@ public class TypescriptFactory {
         for (Type type : constructor.getGenericParameterTypes()) {
             paramsTypes.add(createReferenceNonnull(type));
         }
-        return new TsConstructorSignature(paramsTypes, typeParameters, returnType);
+
+        List<String> parameterNames = parameterNameResolver.find(constructor);
+        return new TsConstructorSignature(paramsTypes, typeParameters, returnType, parameterNames);
     }
 
 

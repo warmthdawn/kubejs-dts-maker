@@ -24,7 +24,7 @@ public class GlobalTypeScope {
     }
 
     public String namespaceNoConflict(String namespace) {
-        return JSKeywords.convertPackageName(namespace);
+        return "Packages." + JSKeywords.convertPackageName(namespace);
     }
 
 }

@@ -83,7 +83,11 @@ public class MethodSignature {
 
     public Set<Method> getOverrideHierarchy() {
         if (overrideHierarchy == null) {
-            overrideHierarchy = MethodUtils.getOverrideHierarchy(rawMethod, ClassUtils.Interfaces.INCLUDE);
+            try {
+                overrideHierarchy = MethodUtils.getOverrideHierarchy(rawMethod, ClassUtils.Interfaces.INCLUDE);
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
         }
         return overrideHierarchy;
     }

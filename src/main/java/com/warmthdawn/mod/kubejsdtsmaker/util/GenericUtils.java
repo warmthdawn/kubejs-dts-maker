@@ -84,6 +84,7 @@ public class GenericUtils {
         return isSameTypeImpl(first, second, false);
     }
 
+    //判断两个泛型类型是否相似，这个方法对于来自两个不同方法的泛型变量比较宽容
     private static boolean isSameTypeImpl(Type first, Type second, boolean ignoreBounds) {
         if (Objects.equals(first, second)) {
             return true;
@@ -101,7 +102,7 @@ public class GenericUtils {
             TypeVariable<?> a = (TypeVariable<?>) first;
             TypeVariable<?> b = (TypeVariable<?>) second;
             if (a.getGenericDeclaration() instanceof Method && b.getGenericDeclaration() instanceof Method) {
-                //方法的就暂时忽略b
+                //如果ab均为方法上面定义的泛型变量，就只需要他们俩的范围一致就行
                 return MiscUtils.all(a.getBounds(), b.getBounds(), (f, s) -> isSameTypeImpl(f, s, true));
             }
             return Objects.equals(a.getGenericDeclaration(), b.getGenericDeclaration()) &&
@@ -118,70 +119,12 @@ public class GenericUtils {
     }
 
 
-    public static boolean isSubtype(Type parent, Type sub) {
-        if (parent == null) {
-            return sub == null;
-        }
+    public static boolean isAssignable(Field selfField, PropertySignature parentField, Class<?> clazz) {
+        Class<?> selfFieldType = selfField.getType();
+        Type parentType = TypeUtils.unrollVariables(TypeUtils.getTypeArguments(clazz, parentField.getOriginalClass()), parentField.getType());
+        Class<?> parentClazz = TypeUtils.getRawType(parentType, null);
 
-        if (parent instanceof TypeVariable) {
-            Type[] parentBounds = ((TypeVariable<?>) parent).getBounds();
-            if (sub instanceof TypeVariable) {
-                if (isSameType(parent, sub)) {
-                    return true;
-                }
-
-                return false;
-            }
-            if (sub instanceof WildcardType) {
-
-            }
-
-            return false;
-        }
-
-        if (sub instanceof TypeVariable) {
-            Type[] bounds = ((TypeVariable<?>) sub).getBounds();
-            for (Type bound : bounds) {
-                if (isSubtype(parent, bound)) {
-                    return true;
-                }
-            }
-            return false;
-        }
-        if (sub instanceof WildcardType) {
-            Type[] bounds = ((WildcardType) sub).getUpperBounds();
-            for (Type bound : bounds) {
-                if (isSubtype(parent, bound)) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        if (parent instanceof Class<?>) {
-            if (sub instanceof Class<?>) {
-                return ClassUtils.isAssignable((Class<?>) sub, (Class<?>) parent);
-            }
-            if (sub instanceof ParameterizedType) {
-                return ClassUtils.isAssignable((Class<?>) ((ParameterizedType) sub).getRawType(), (Class<?>) parent);
-            }
-
-            return false;
-        }
-        if (parent instanceof GenericArrayType) {
-            if (sub instanceof Class) {
-
-            }
-            if (sub instanceof GenericArrayType) {
-
-            }
-        }
-
-        return false;
-    }
-
-    public static boolean isAssignable(Type genericType, Type type, Map<TypeVariable<?>, Type> typeArguments) {
-        return ClassUtils.isAssignable(TypeUtils.getRawType(genericType, null), TypeUtils.getRawType(type, null));
+        return ClassUtils.isAssignable(selfFieldType, parentClazz);
     }
 
     public static boolean isAssignable(PropertySignature type, PropertySignature toType, Class<?> current) {
@@ -190,4 +133,5 @@ public class GenericUtils {
             TypeUtils.unrollVariables(TypeUtils.getTypeArguments(current, toType.getOriginalClass()), toType.getType())
         );
     }
+
 }

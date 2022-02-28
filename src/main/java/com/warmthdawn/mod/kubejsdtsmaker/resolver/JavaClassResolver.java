@@ -82,9 +82,17 @@ public class JavaClassResolver {
 //                resolve(declaringClass);
 //            }
 //        }
-        Class<?>[] innerClasses = clazz.getDeclaredClasses();
-        for (Class<?> inner : innerClasses) {
-            addRelevant(inner);
+        //内部类暂时不主动解析
+//        Class<?>[] innerClasses = clazz.getDeclaredClasses();
+//        for (Class<?> inner : innerClasses) {
+//            addRelevant(inner);
+//        }
+
+        if (clazz.isMemberClass()) {
+            if (clazz.getDeclaringClass().isMemberClass()) {
+                //禁止套娃
+                return null;
+            }
         }
 
 
@@ -100,9 +108,13 @@ public class JavaClassResolver {
             if (resolve != null)
                 memberKeys.addAll(resolve.getMemberKeys());
         }
-
-        JavaTypeInfo resolved = doResolve(clazz, memberKeys);
-        context.add(clazz, resolved);
+        JavaTypeInfo resolved = null;
+        try {
+            resolved = doResolve(clazz, memberKeys);
+            context.add(clazz, resolved);
+        } catch (NoClassDefFoundError error) {
+            logger.error("Could not find load class", error);
+        }
         resolvingClass.remove(clazz);
         return resolved;
     }
@@ -188,10 +200,6 @@ public class JavaClassResolver {
 
         JavaTypeInfo result = new JavaTypeInfo(clazz, members, staticMembers, constructorMember, memberKeys);
         //解析方法重写
-
-        if(clazz == StringBuffer.class) {
-            logger.error(":2333");
-        }
 
         HashSet<String> visited = new HashSet<>();
         Iterator<Map.Entry<String, JavaInstanceMember>> iterator = members.entrySet().iterator();

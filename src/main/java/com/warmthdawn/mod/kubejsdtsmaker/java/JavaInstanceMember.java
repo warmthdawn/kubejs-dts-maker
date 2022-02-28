@@ -155,10 +155,7 @@ public class JavaInstanceMember {
         if (parentField != null) {
             if (selfField == null) {
                 actualField = parentField;
-            } else if (GenericUtils.isAssignable(
-                selfField.getGenericType(),
-                parentField.getType(),
-                TypeUtils.getTypeArguments(clazz, parentField.getOriginalClass()))) {
+            } else if (GenericUtils.isAssignable(selfField, parentField, clazz)) {
                 actualField = new PropertySignature(name, selfField);
                 hideMembers = false;
             } else {

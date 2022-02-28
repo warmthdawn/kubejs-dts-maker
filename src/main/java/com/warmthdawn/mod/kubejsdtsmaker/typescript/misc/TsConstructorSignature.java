@@ -7,8 +7,8 @@ import com.warmthdawn.mod.kubejsdtsmaker.typescript.types.TsType;
 import java.util.List;
 
 public class TsConstructorSignature extends CallSignature {
-    public TsConstructorSignature(List<TsType> paramsTypes, TypeParameters typeParameters, TsType returnType) {
-        super(paramsTypes, typeParameters, returnType);
+    public TsConstructorSignature(List<TsType> paramsTypes, TypeParameters typeParameters, TsType returnType, List<String> parameterNames) {
+        super(paramsTypes, typeParameters, returnType, parameterNames);
     }
 
     @Override

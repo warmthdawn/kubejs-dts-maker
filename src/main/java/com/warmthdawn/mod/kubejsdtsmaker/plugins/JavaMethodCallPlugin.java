@@ -8,6 +8,7 @@ import com.warmthdawn.mod.kubejsdtsmaker.context.ResolveBlacklist;
 import com.warmthdawn.mod.kubejsdtsmaker.context.ResolveContext;
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.declaration.IDeclaration;
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.global.IGlobalDeclaration;
+import com.warmthdawn.mod.kubejsdtsmaker.typescript.types.TsType;
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.types.TypeReference;
 import dev.latvian.kubejs.util.ClassFilter;
 
@@ -35,10 +36,10 @@ public class JavaMethodCallPlugin implements IBuilderPlugin {
     public void addExtraGlobals(List<IGlobalDeclaration> output) {
         ClassFilter classFilter = resolveContext.getBlacklist().getKubeJsClassFilter();
         Map<Class<?>, TypeReference> referenceMappings = buildContext.getConstructorReferenceMappings();
-        Map<String, String> classMaps = new HashMap<>();
+        Map<String, TsType> classMaps = new HashMap<>();
         for (Map.Entry<Class<?>, TypeReference> entry : referenceMappings.entrySet()) {
             if (classFilter.isAllowed(entry.getKey().getName())) {
-                classMaps.put(entry.getKey().getName(), entry.getValue().getSignature());
+                classMaps.put(entry.getKey().getName(), entry.getValue());
             }
         }
         output.add(new GlobalJavaMethodDeclaration("java", "JavaClassMappings", classMaps));
@@ -47,9 +48,9 @@ public class JavaMethodCallPlugin implements IBuilderPlugin {
     public static class GlobalJavaMethodDeclaration implements IGlobalDeclaration {
         private String methodName;
         private String typeMapName;
-        private Map<String, String> classMaps;
+        private Map<String, TsType> classMaps;
 
-        public GlobalJavaMethodDeclaration(String methodName, String typeMapName, Map<String, String> classMaps) {
+        public GlobalJavaMethodDeclaration(String methodName, String typeMapName, Map<String, TsType> classMaps) {
             this.methodName = methodName;
             this.typeMapName = typeMapName;
             this.classMaps = classMaps;

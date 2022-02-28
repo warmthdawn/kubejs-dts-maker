@@ -5,6 +5,8 @@ import com.warmthdawn.mod.kubejsdtsmaker.BuilderManager;
 import com.warmthdawn.mod.kubejsdtsmaker.builder.DeclarationBuilder;
 import com.warmthdawn.mod.kubejsdtsmaker.builder.GlobalMemberFactory;
 import com.warmthdawn.mod.kubejsdtsmaker.builder.TypescriptFactory;
+import com.warmthdawn.mod.kubejsdtsmaker.bytecode.BytecodeUtils;
+import com.warmthdawn.mod.kubejsdtsmaker.bytecode.ScanResult;
 import com.warmthdawn.mod.kubejsdtsmaker.collector.WrappedBindingsEvent;
 import com.warmthdawn.mod.kubejsdtsmaker.context.KubeJsGlobalContext;
 import com.warmthdawn.mod.kubejsdtsmaker.context.ResolveContext;
@@ -40,6 +42,20 @@ public class DumpCommand {
                     e.printStackTrace();
                 }
                 System.out.println("build successful");
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
+            return 0;
+        }));
+
+
+        dispatcher.register(Commands.literal("dump_events").requires(
+            it -> it.hasPermission(2)
+        ).executes((it) -> {
+            CommandSource commandsource = it.getSource();
+            try {
+                ScanResult result = BytecodeUtils.scanAllMods();
+                System.out.println(result);
             } catch (Throwable e) {
                 e.printStackTrace();
             }
