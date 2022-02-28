@@ -174,7 +174,7 @@ public class JavaInstanceMember {
             hideMembers = false;
         }
 
-        if (actualField == null) {
+        if (actualField == null && parentMembers.isEmpty()) {
             actualField = this.bean;
             if (actualField != null) {
                 hideMembers = false;

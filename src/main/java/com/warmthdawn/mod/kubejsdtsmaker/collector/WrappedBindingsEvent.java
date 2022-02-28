@@ -1,6 +1,6 @@
 package com.warmthdawn.mod.kubejsdtsmaker.collector;
 
-import com.warmthdawn.mod.kubejsdtsmaker.context.GlobalTypeContext;
+import com.warmthdawn.mod.kubejsdtsmaker.context.KubeJsGlobalContext;
 import dev.latvian.kubejs.script.BindingsEvent;
 import dev.latvian.kubejs.script.ScriptManager;
 import dev.latvian.kubejs.script.ScriptType;
@@ -10,15 +10,15 @@ import dev.latvian.mods.rhino.util.DynamicFunction;
 
 public class WrappedBindingsEvent extends BindingsEvent {
     private ScriptType type;
-    private final GlobalTypeContext collector;
+    private final KubeJsGlobalContext collector;
 
 
-    public WrappedBindingsEvent(ScriptManager manager, GlobalTypeContext collector) {
+    public WrappedBindingsEvent(ScriptManager manager, KubeJsGlobalContext collector) {
         super(manager, null, null);
         this.collector = collector;
     }
 
-    public static void collectGlobals(GlobalTypeContext collector) {
+    public static void collectGlobals(KubeJsGlobalContext collector) {
         for (ScriptType value : ScriptType.values()) {
             ScriptManager manager = new ScriptManager(value, null, null);
             WrappedBindingsEvent event = new WrappedBindingsEvent(manager, collector);

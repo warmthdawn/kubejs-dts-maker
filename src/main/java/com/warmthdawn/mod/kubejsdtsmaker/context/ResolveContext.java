@@ -17,7 +17,7 @@ public class ResolveContext {
     }
 
     private final GlobalTypeScope typeScope;
-    private ResolveBlacklist blacklist;
+    private final ResolveBlacklist blacklist;
 
     public ResolveContext() {
         typeScope = new GlobalTypeScope();

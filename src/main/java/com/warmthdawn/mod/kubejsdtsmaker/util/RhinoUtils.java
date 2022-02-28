@@ -22,6 +22,7 @@ public class RhinoUtils {
 
         public void addGetter(Method getter) {
             this.type = getter.getGenericReturnType();
+            this.owner = getter.getDeclaringClass();
         }
 
         public void addSetter(Method setter) {

@@ -2,7 +2,7 @@ package com.warmthdawn.mod.kubejsdtsmaker.context;
 
 import java.util.*;
 
-public class GlobalTypeContext {
+public class KubeJsGlobalContext {
 
     private final Map<String, Class<?>> globalVars = new HashMap<>();
     private final Map<String, Class<?>> typeAliases = new HashMap<>();

@@ -23,23 +23,25 @@ import com.warmthdawn.mod.kubejsdtsmaker.typescript.misc.CallSignature;
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.misc.TsConstructorSignature;
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.types.*;
 import com.warmthdawn.mod.kubejsdtsmaker.util.*;
-import org.apache.commons.lang3.reflect.TypeUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.lwjgl.system.CallbackI;
 
 import javax.annotation.Nonnull;
 import java.lang.reflect.*;
 import java.util.*;
 
-public class TsTreeFactory {
+public class TypescriptFactory {
     private final ResolveContext context;
     private final BuildContext buildContext;
     private static final Logger logger = LogManager.getLogger();
 
-    public TsTreeFactory(ResolveContext context) {
+    public TypescriptFactory(ResolveContext context, BuildContext buildContext) {
         this.context = context;
-        this.buildContext = new BuildContext();
+        this.buildContext = buildContext;
+    }
+
+    public BuildContext getBuildContext() {
+        return buildContext;
     }
 
     public DeclarationFile createFile() {
@@ -60,6 +62,7 @@ public class TsTreeFactory {
             Namespace namespace = createNamespace(namespaceName, groupedTypes.get(namespaceName));
             namespaces.add(namespace);
         }
+        buildContext.setLoaded(true);
         return new DeclarationFile(namespaces);
     }
 
@@ -73,7 +76,7 @@ public class TsTreeFactory {
             IDeclaration declaration = createTypeDeclaration(typeInfo);
             children.add(declaration);
 
-            IDeclaration staticDeclaration = createStaticTypeDeclaration(name, typeInfo);
+            InterfaceDeclaration staticDeclaration = createStaticTypeDeclaration(name, typeInfo);
             if (staticDeclaration != null) {
                 children.add(staticDeclaration);
             }
@@ -105,7 +108,17 @@ public class TsTreeFactory {
         Map<String, JavaInstanceMember> javaMembers = info.getMembers();
         TypeParameters typeParameters = createTypeParameters(javaClazz.getTypeParameters());
 
-        if (javaMembers == null || javaMembers.isEmpty()) {
+        List<Member> members = new ArrayList<>();
+        if (javaMembers != null && !javaMembers.isEmpty()) {
+            for (Map.Entry<String, JavaInstanceMember> entry : javaMembers.entrySet()) {
+                Member member = createMember(entry.getKey(), entry.getValue());
+                if (member != null) {
+                    members.add(member);
+                }
+            }
+        }
+
+        if (members.isEmpty()) {
             if (parents.size() == 0) {
                 return new TypeAliasDeclaration(name, PredefinedTypes.OBJECT, typeParameters);
             }
@@ -116,18 +129,11 @@ public class TsTreeFactory {
             return new TypeAliasDeclaration(javaClazz.getSimpleName(), unionType, typeParameters);
         }
 
-        List<Member> members = new ArrayList<>(javaMembers.size());
-        for (Map.Entry<String, JavaInstanceMember> entry : javaMembers.entrySet()) {
-            Member member = createMember(entry.getKey(), entry.getValue());
-            if (member != null) {
-                members.add(member);
-            }
-        }
 
         return new InterfaceDeclaration(name, members, typeParameters, parents);
     }
 
-    public IDeclaration createStaticTypeDeclaration(String namespaceName, JavaTypeInfo info) {
+    public InterfaceDeclaration createStaticTypeDeclaration(String namespaceName, JavaTypeInfo info) {
 
         String name = info.getJavaClazz().getSimpleName();
 
@@ -163,7 +169,7 @@ public class TsTreeFactory {
             if (!context.canReference(rawType)) {
                 return null;
             }
-            TypeArguments typeArguments = createTypeArguments(rawType.getTypeParameters().length);
+            TypeArguments typeArguments = BuilderUtils.createEmptyTypeArguments(rawType.getTypeParameters().length);
             String namespace = buildContext.getNamespace(rawType);
             return new TypeReference(typeArguments, namespace, rawType.getSimpleName());
         }
@@ -388,14 +394,5 @@ public class TsTreeFactory {
         return new TypeArguments(list);
     }
 
-    public TypeArguments createTypeArguments(int argCount) {
-        if (argCount == 0) {
-            return null;
-        }
-        ArrayList<TsType> list = new ArrayList<>(argCount);
-        for (int i = 0; i < argCount; i++) {
-            list.add(PredefinedTypes.ANY);
-        }
-        return new TypeArguments(list);
-    }
+
 }

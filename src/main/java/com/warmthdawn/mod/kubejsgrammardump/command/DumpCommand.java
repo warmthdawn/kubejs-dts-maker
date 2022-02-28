@@ -1,16 +1,16 @@
 package com.warmthdawn.mod.kubejsgrammardump.command;
 
-import com.google.common.collect.ImmutableList;
 import com.mojang.brigadier.CommandDispatcher;
+import com.warmthdawn.mod.kubejsdtsmaker.BuilderManager;
 import com.warmthdawn.mod.kubejsdtsmaker.builder.DeclarationBuilder;
-import com.warmthdawn.mod.kubejsdtsmaker.builder.TsTreeFactory;
+import com.warmthdawn.mod.kubejsdtsmaker.builder.GlobalMemberFactory;
+import com.warmthdawn.mod.kubejsdtsmaker.builder.TypescriptFactory;
 import com.warmthdawn.mod.kubejsdtsmaker.collector.WrappedBindingsEvent;
-import com.warmthdawn.mod.kubejsdtsmaker.context.GlobalTypeContext;
+import com.warmthdawn.mod.kubejsdtsmaker.context.KubeJsGlobalContext;
 import com.warmthdawn.mod.kubejsdtsmaker.context.ResolveContext;
 import com.warmthdawn.mod.kubejsdtsmaker.resolver.JavaClassResolver;
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.DeclarationFile;
-import dev.latvian.kubejs.entity.EntityJS;
-import dev.latvian.kubejs.player.ChestEventJS;
+import com.warmthdawn.mod.kubejsdtsmaker.typescript.global.IGlobalDeclaration;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 
@@ -19,8 +19,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -32,23 +30,16 @@ public class DumpCommand {
             CommandSource commandsource = it.getSource();
             try {
 //                DeclarationBuilder.build();
-                GlobalTypeContext global = new GlobalTypeContext();
-                WrappedBindingsEvent.collectGlobals(global);
-                Set<Class<?>> classes = global.getReferencedClasses();
-                ResolveContext context = new ResolveContext();
-                JavaClassResolver.resolve(classes, context, 2);
-//                JavaClassResolver.resolve(Collections.singletonList(ArrayList.class), context, 0);
-                TsTreeFactory tsTreeFactory = new TsTreeFactory(context);
 
-                DeclarationFile file = tsTreeFactory.createFile();
-                DeclarationBuilder declarationBuilder = new DeclarationBuilder();
-                file.build(declarationBuilder);
+                BuilderManager builderManager = BuilderManager.create();
+                builderManager.resolveClasses();
+                String s = builderManager.generateResult();
                 try (BufferedWriter bufferedWriter = Files.newBufferedWriter(Paths.get("minecraft.d.ts"), StandardCharsets.UTF_8)) {
-                    bufferedWriter.write(declarationBuilder.build());
+                    bufferedWriter.write(s);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                System.out.println(context);
+                System.out.println("build successful");
             } catch (Throwable e) {
                 e.printStackTrace();
             }

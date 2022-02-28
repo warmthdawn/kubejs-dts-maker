@@ -1,7 +1,11 @@
 package com.warmthdawn.mod.kubejsdtsmaker.util;
 
 import com.warmthdawn.mod.kubejsdtsmaker.builder.DeclarationBuilder;
+import com.warmthdawn.mod.kubejsdtsmaker.typescript.generic.TypeArguments;
+import com.warmthdawn.mod.kubejsdtsmaker.typescript.types.PredefinedTypes;
+import com.warmthdawn.mod.kubejsdtsmaker.typescript.types.TsType;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -24,5 +28,17 @@ public class BuilderUtils {
                 builder.append(divider);
             }
         }
+    }
+
+
+    public static TypeArguments createEmptyTypeArguments(int argCount) {
+        if (argCount == 0) {
+            return null;
+        }
+        ArrayList<TsType> list = new ArrayList<>(argCount);
+        for (int i = 0; i < argCount; i++) {
+            list.add(PredefinedTypes.ANY);
+        }
+        return new TypeArguments(list);
     }
 }

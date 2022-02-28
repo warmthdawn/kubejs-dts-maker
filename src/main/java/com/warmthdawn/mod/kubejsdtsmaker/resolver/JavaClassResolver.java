@@ -189,6 +189,10 @@ public class JavaClassResolver {
         JavaTypeInfo result = new JavaTypeInfo(clazz, members, staticMembers, constructorMember, memberKeys);
         //解析方法重写
 
+        if(clazz == StringBuffer.class) {
+            logger.error(":2333");
+        }
+
         HashSet<String> visited = new HashSet<>();
         Iterator<Map.Entry<String, JavaInstanceMember>> iterator = members.entrySet().iterator();
         while (iterator.hasNext()) {
