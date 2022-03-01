@@ -9,12 +9,12 @@ import com.warmthdawn.mod.kubejsdtsmaker.collector.WrappedBindingsEvent;
 import com.warmthdawn.mod.kubejsdtsmaker.context.BuildContext;
 import com.warmthdawn.mod.kubejsdtsmaker.context.KubeJsGlobalContext;
 import com.warmthdawn.mod.kubejsdtsmaker.context.ResolveContext;
-import com.warmthdawn.mod.kubejsdtsmaker.plugins.IBuilderPlugin;
-import com.warmthdawn.mod.kubejsdtsmaker.plugins.JavaMethodCallPlugin;
-import com.warmthdawn.mod.kubejsdtsmaker.plugins.RecipeEventPlugin;
+import com.warmthdawn.mod.kubejsdtsmaker.plugins.*;
+import com.warmthdawn.mod.kubejsdtsmaker.plugins.wrappers.WrappersPlugin;
 import com.warmthdawn.mod.kubejsdtsmaker.resolver.JavaClassResolver;
 import com.warmthdawn.mod.kubejsdtsmaker.resolver.MethodParameterNameResolver;
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.DeclarationFile;
+import com.warmthdawn.mod.kubejsdtsmaker.typescript.Namespace;
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.global.IGlobalDeclaration;
 
 import java.util.ArrayList;
@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class BuilderManager {
 
@@ -30,7 +31,7 @@ public class BuilderManager {
     private final BuildContext buildContext = new BuildContext();
 
     private final MethodParameterNameResolver parameterNameResolver = new MethodParameterNameResolver();
-    private final TypescriptFactory tsFactory = new TypescriptFactory(context, buildContext, parameterNameResolver);
+    private final TypescriptFactory tsFactory = new TypescriptFactory(this, context, buildContext, parameterNameResolver);
     private final GlobalMemberFactory memberFactory = new GlobalMemberFactory(tsFactory, buildContext, context, kubeJsGlobalContext);
 
     private final Set<Class<?>> beginClasses = new HashSet<>();
@@ -72,6 +73,16 @@ public class BuilderManager {
         }
     }
 
+    public <T> T applyOnPlugin(Function<IBuilderPlugin, T> function) {
+        for (IBuilderPlugin plugin : plugins) {
+            T apply = function.apply(plugin);
+            if (apply != null) {
+                return apply;
+            }
+        }
+        return null;
+    }
+
     private BuilderManager(List<IBuilderPlugin> plugins) {
         this.plugins = new ArrayList<>(plugins);
         forEachPlugin(it -> it.init(this));
@@ -80,7 +91,9 @@ public class BuilderManager {
     public static BuilderManager create() {
         List<IBuilderPlugin> plugins = new ArrayList<>();
         plugins.add(new JavaMethodCallPlugin());
-        plugins.add(new RecipeEventPlugin());
+        plugins.add(new EventJSPlugin());
+        plugins.add(new RhinoExtrasPlugin());
+        plugins.add(new WrappersPlugin());
         BuilderManager manager = new BuilderManager(plugins);
         ScanResult result = BytecodeUtils.scanAllMods();
         manager.parameterNameResolver.acceptScanData(result);
@@ -95,14 +108,18 @@ public class BuilderManager {
 
     public void resolveClasses() {
         JavaClassResolver.resolve(beginClasses, context, 2);
+        context.getTypeInfos().values().forEach(it -> it.finalizeResolve(context));
+        forEachPlugin(IBuilderPlugin::onResolveFinished);
     }
 
 
     public String generateResult() {
         DeclarationFile file = tsFactory.createFile();
         List<IGlobalDeclaration> globals = memberFactory.createGlobals();
-        forEachPlugin(it -> it.addExtraGlobals(globals));
+        List<Namespace> extraNamespaces = new ArrayList<>();
+        forEachPlugin(it -> it.addExtraGlobals(globals, extraNamespaces));
         file.addGlobals(globals);
+        file.addExtraNamespaces(extraNamespaces);
 
         DeclarationBuilder declarationBuilder = new DeclarationBuilder();
         file.build(declarationBuilder);

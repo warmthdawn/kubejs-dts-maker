@@ -4,6 +4,7 @@ import com.mojang.serialization.codecs.SimpleMapCodec;
 import com.mojang.serialization.codecs.UnboundedMapCodec;
 import com.warmthdawn.mod.kubejsdtsmaker.context.ResolveContext;
 import com.warmthdawn.mod.kubejsdtsmaker.java.*;
+import com.warmthdawn.mod.kubejsdtsmaker.typescript.misc.CallSignature;
 import com.warmthdawn.mod.kubejsdtsmaker.util.PropertySignature;
 import com.warmthdawn.mod.kubejsdtsmaker.util.GenericUtils;
 import com.warmthdawn.mod.kubejsdtsmaker.util.RhinoUtils;
@@ -113,7 +114,7 @@ public class JavaClassResolver {
             resolved = doResolve(clazz, memberKeys);
             context.add(clazz, resolved);
         } catch (NoClassDefFoundError error) {
-            logger.error("Could not find load class", error);
+            logger.error("Could not find load class {}", error.getMessage());
         }
         resolvingClass.remove(clazz);
         return resolved;
@@ -201,6 +202,7 @@ public class JavaClassResolver {
         JavaTypeInfo result = new JavaTypeInfo(clazz, members, staticMembers, constructorMember, memberKeys);
         //解析方法重写
 
+
         HashSet<String> visited = new HashSet<>();
         Iterator<Map.Entry<String, JavaInstanceMember>> iterator = members.entrySet().iterator();
         while (iterator.hasNext()) {
@@ -275,9 +277,15 @@ public class JavaClassResolver {
             if (!Modifier.isPublic(modifiers) || Modifier.isTransient(modifiers)) {
                 continue;
             }
+
             String name = remapMemberName(field);
-            JavaInstanceMember member = members.computeIfAbsent(name, JavaInstanceMember::new);
-            member.addField(field);
+            if (Modifier.isStatic(modifiers)) {
+                JavaStaticMember member = staticMembers.computeIfAbsent(name, JavaStaticMember::new);
+                member.addField(field);
+            } else {
+                JavaInstanceMember member = members.computeIfAbsent(name, JavaInstanceMember::new);
+                member.addField(field);
+            }
             addRelevant(field);
         }
         for (PropertySignature bean : RhinoUtils.getBeans(staticMethods)) {

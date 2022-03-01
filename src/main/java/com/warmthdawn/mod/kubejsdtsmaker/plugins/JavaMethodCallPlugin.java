@@ -4,9 +4,8 @@ package com.warmthdawn.mod.kubejsdtsmaker.plugins;
 import com.warmthdawn.mod.kubejsdtsmaker.BuilderManager;
 import com.warmthdawn.mod.kubejsdtsmaker.builder.DeclarationBuilder;
 import com.warmthdawn.mod.kubejsdtsmaker.context.BuildContext;
-import com.warmthdawn.mod.kubejsdtsmaker.context.ResolveBlacklist;
 import com.warmthdawn.mod.kubejsdtsmaker.context.ResolveContext;
-import com.warmthdawn.mod.kubejsdtsmaker.typescript.declaration.IDeclaration;
+import com.warmthdawn.mod.kubejsdtsmaker.typescript.Namespace;
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.global.IGlobalDeclaration;
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.types.TsType;
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.types.TypeReference;
@@ -33,7 +32,7 @@ public class JavaMethodCallPlugin implements IBuilderPlugin {
     }
 
     @Override
-    public void addExtraGlobals(List<IGlobalDeclaration> output) {
+    public void addExtraGlobals(List<IGlobalDeclaration> output, List<Namespace> extraNamespaces) {
         ClassFilter classFilter = resolveContext.getBlacklist().getKubeJsClassFilter();
         Map<Class<?>, TypeReference> referenceMappings = buildContext.getConstructorReferenceMappings();
         Map<String, TsType> classMaps = new HashMap<>();

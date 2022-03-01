@@ -6,10 +6,9 @@ import com.warmthdawn.mod.kubejsdtsmaker.BuilderManager;
 import com.warmthdawn.mod.kubejsdtsmaker.builder.DeclarationBuilder;
 import com.warmthdawn.mod.kubejsdtsmaker.builder.TypescriptFactory;
 import com.warmthdawn.mod.kubejsdtsmaker.bytecode.ScanResult;
-import com.warmthdawn.mod.kubejsdtsmaker.context.BuildContext;
+import com.warmthdawn.mod.kubejsdtsmaker.typescript.Namespace;
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.global.IGlobalDeclaration;
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.types.TsType;
-import com.warmthdawn.mod.kubejsdtsmaker.typescript.types.TypeReference;
 import dev.latvian.kubejs.event.EventJS;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -17,7 +16,7 @@ import org.objectweb.asm.Type;
 
 import java.util.*;
 
-public class RecipeEventPlugin implements IBuilderPlugin {
+public class EventJSPlugin implements IBuilderPlugin {
     private static final Logger logger = LogManager.getLogger();
     private final Map<String, Class<?>> eventClasses = new HashMap<>();
     private final Map<String, String> eventNameMap = new HashMap<>();
@@ -58,7 +57,7 @@ public class RecipeEventPlugin implements IBuilderPlugin {
             Class<?> clazz = Class.forName(className);
             eventClasses.put(name, clazz);
         } catch (ClassNotFoundException | NoClassDefFoundError e) {
-            logger.error("Could not find event class {} when resolving", name, e);
+            logger.error("Could not find event class {} when resolving", name);
         }
         Collection<String> collection = clazzMaps.get(name);
         for (String s : collection) {
@@ -85,7 +84,7 @@ public class RecipeEventPlugin implements IBuilderPlugin {
     }
 
     @Override
-    public void addExtraGlobals(List<IGlobalDeclaration> output) {
+    public void addExtraGlobals(List<IGlobalDeclaration> output, List<Namespace> extraNamespaces) {
         Map<String, TsType> eventMaps = new HashMap<>();
         for (Map.Entry<String, String> entry : eventNameMap.entrySet()) {
             Class<?> clazz = eventClasses.get(entry.getValue());

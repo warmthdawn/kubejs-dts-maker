@@ -2,6 +2,7 @@ package com.warmthdawn.mod.kubejsdtsmaker.builder;
 
 import com.google.common.collect.Multimap;
 import com.google.common.collect.TreeMultimap;
+import com.warmthdawn.mod.kubejsdtsmaker.BuilderManager;
 import com.warmthdawn.mod.kubejsdtsmaker.context.BuildContext;
 import com.warmthdawn.mod.kubejsdtsmaker.context.GlobalTypeScope;
 import com.warmthdawn.mod.kubejsdtsmaker.context.ResolveContext;
@@ -36,11 +37,13 @@ public class TypescriptFactory {
     private final BuildContext buildContext;
     private final MethodParameterNameResolver parameterNameResolver;
     private static final Logger logger = LogManager.getLogger();
+    private final BuilderManager manager;
 
-    public TypescriptFactory(ResolveContext context, BuildContext buildContext, MethodParameterNameResolver parameterNameResolver) {
+    public TypescriptFactory(BuilderManager manager, ResolveContext context, BuildContext buildContext, MethodParameterNameResolver parameterNameResolver) {
         this.context = context;
         this.buildContext = buildContext;
         this.parameterNameResolver = parameterNameResolver;
+        this.manager = manager;
     }
 
     public BuildContext getBuildContext() {
@@ -133,23 +136,34 @@ public class TypescriptFactory {
         }
 
 
-        return new InterfaceDeclaration(name, members, typeParameters, parents);
+        InterfaceDeclaration interfaceDeclaration = new InterfaceDeclaration(name, members, typeParameters, parents);
+        manager.forEachPlugin(it -> it.onInterfaceBuild(javaClazz, interfaceDeclaration, false));
+        return interfaceDeclaration;
     }
 
     public InterfaceDeclaration createStaticTypeDeclaration(String namespaceName, JavaTypeInfo info) {
 
-        String name = info.getJavaClazz().getSimpleName();
+        String clazzName = info.getJavaClazz().getSimpleName();
 
-        name = context.getTypeScope().clazzNoConflict(namespaceName, name + "Constructor");
+        String name = null;
 
         List<Member> members = new ArrayList<>();
-        JavaConstructorMember constructorMember = info.getConstructorMember();
-        if (constructorMember != null) {
-            Member member = createMember(constructorMember, info.getJavaClazz());
-            if (member != null) {
-                members.add(member);
+        if (!info.isEmpty()) {
+            JavaConstructorMember constructorMember = info.getConstructorMember();
+            if (constructorMember != null) {
+                Member member = createMember(constructorMember, info.getJavaClazz());
+                if (member != null) {
+                    members.add(member);
+
+                    name = context.getTypeScope().clazzNoConflict(namespaceName, clazzName + "Constructor");
+                }
             }
         }
+
+        if (name == null) {
+            name = context.getTypeScope().clazzNoConflict(namespaceName, clazzName + "Static");
+        }
+
         Map<String, JavaStaticMember> staticMembers = info.getStaticMembers();
         if (staticMembers != null) {
             for (Map.Entry<String, JavaStaticMember> entry : staticMembers.entrySet()) {
@@ -159,11 +173,14 @@ public class TypescriptFactory {
                 }
             }
         }
-        if (members.isEmpty()) {
+
+        InterfaceDeclaration interfaceDeclaration = new InterfaceDeclaration(name, members, null, null);
+        manager.forEachPlugin(it -> it.onInterfaceBuild(info.getJavaClazz(), interfaceDeclaration, true));
+
+        if (interfaceDeclaration.getMembers().isEmpty()) {
             return null;
         }
-
-        return new InterfaceDeclaration(name, members, null, null);
+        return interfaceDeclaration;
     }
 
     public TypeReference createReference(Type type) {
@@ -192,8 +209,12 @@ public class TypescriptFactory {
         return null;
     }
 
-    @Nonnull
     public TsType createReferenceNonnull(Type type) {
+        return createReferenceNonnull(type, false);
+    }
+
+    @Nonnull
+    public TsType createReferenceNonnull(Type type, boolean useWrapper) {
         if (type instanceof Class<?>) {
             Class<?> rawType = (Class<?>) type;
             if (rawType.isArray()) {
@@ -234,8 +255,35 @@ public class TypescriptFactory {
         if (reference == null) {
             return PredefinedTypes.ANY;
         }
+
+
+        if (useWrapper) {
+            TsType wrapperReference = createWrapperReference(type, reference);
+            if (wrapperReference != null) {
+                return wrapperReference;
+            }
+        }
+
         return reference;
     }
+
+    public TsType createWrapperReference(Type type, TypeReference old) {
+        Class<?> clazz = null;
+        if (type instanceof ParameterizedType) {
+            clazz = (Class<?>) ((ParameterizedType) type).getRawType();
+        } else if (type instanceof Class<?>) {
+            clazz = (Class<?>) type;
+        }
+        if (clazz != null) {
+            Class<?> finalClazz = clazz;
+            TypeReference result = manager.applyOnPlugin(p -> p.onParameterWrapper(finalClazz, old));
+            if (result != old) {
+                return result;
+            }
+        }
+        return null;
+    }
+
 
     public TypeReference createReferenceNonnull(Class<?> clazz, TypeVariable<?>[] extraVariables) {
         if (!context.isResolved(clazz)) {
@@ -351,25 +399,27 @@ public class TypescriptFactory {
         TypeVariable<?>[] variables = method.getVariables();
         TypeParameters typeParameters = createTypeParameters(variables);
         TsType returnType = createReferenceNonnull(method.getReturnType());
-        List<TsType> paramsTypes = new ArrayList<>(method.getParameterType().length);
-        for (Type type : method.getParameterType()) {
-            paramsTypes.add(createReferenceNonnull(type));
-        }
+        List<TsType> parameterTypes = createParameterTypes(method.getParameterType());
         List<String> parameterNames = parameterNameResolver.find(method.getRawMethod());
-        return new CallSignature(paramsTypes, typeParameters, returnType, parameterNames);
+        return new CallSignature(parameterTypes, typeParameters, returnType, parameterNames);
     }
 
+
+    private List<TsType> createParameterTypes(Type[] parameterTypes) {
+        List<TsType> paramsTypes = new ArrayList<>(parameterTypes.length);
+        for (Type type : parameterTypes) {
+            paramsTypes.add(createReferenceNonnull(type, true));
+        }
+        return paramsTypes;
+    }
 
     public CallSignature createCallSignature(Method method) {
         TypeVariable<?>[] variables = method.getTypeParameters();
         TypeParameters typeParameters = createTypeParameters(variables);
         TsType returnType = createReferenceNonnull(method.getGenericReturnType());
-        List<TsType> paramsTypes = new ArrayList<>(method.getGenericParameterTypes().length);
-        for (Type type : method.getGenericParameterTypes()) {
-            paramsTypes.add(createReferenceNonnull(type));
-        }
+        List<TsType> parameterTypes = createParameterTypes(method.getGenericParameterTypes());
         List<String> parameterNames = parameterNameResolver.find(method);
-        return new CallSignature(paramsTypes, typeParameters, returnType, parameterNames);
+        return new CallSignature(parameterTypes, typeParameters, returnType, parameterNames);
     }
 
     public TsConstructorSignature createConstructorSignature(Constructor<?> constructor, Class<?> clazz) {
@@ -379,10 +429,7 @@ public class TypescriptFactory {
             return null;
         }
         TypeParameters typeParameters = createTypeParameters(clazzVariables);
-        List<TsType> paramsTypes = new ArrayList<>(constructor.getGenericParameterTypes().length);
-        for (Type type : constructor.getGenericParameterTypes()) {
-            paramsTypes.add(createReferenceNonnull(type));
-        }
+        List<TsType> paramsTypes = createParameterTypes(constructor.getGenericParameterTypes());
 
         List<String> parameterNames = parameterNameResolver.find(constructor);
         return new TsConstructorSignature(paramsTypes, typeParameters, returnType, parameterNames);

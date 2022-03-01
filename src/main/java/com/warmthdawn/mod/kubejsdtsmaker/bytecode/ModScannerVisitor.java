@@ -59,7 +59,7 @@ public class ModScannerVisitor extends ClassVisitor {
                 for (ParameterNode parameter : parameters) {
                     parameterNames.add(parameter.name);
                 }
-                result.addMethodParametersInfo(name, clazzName, signature, parameterNames);
+                result.addMethodParametersInfo(name, clazzName, desc, parameterNames);
             }
 
             //scan event post

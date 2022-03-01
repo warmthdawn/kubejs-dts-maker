@@ -1,7 +1,9 @@
 package com.warmthdawn.mod.kubejsdtsmaker.java;
 
 import com.warmthdawn.mod.kubejsdtsmaker.context.ResolveContext;
+import com.warmthdawn.mod.kubejsdtsmaker.typescript.types.TypeReference;
 
+import java.lang.reflect.Type;
 import java.util.*;
 
 public class JavaTypeInfo {
@@ -40,6 +42,46 @@ public class JavaTypeInfo {
         return members.get(name);
     }
 
+
+    private boolean hasParents;
+    private boolean hasMembers;
+
+    public boolean hasParents() {
+        return hasParents;
+    }
+
+    public boolean hasMembers() {
+        return hasMembers;
+    }
+    public boolean isEmpty() {
+        return !hasMembers && !hasParents;
+    }
+
+
+    public void finalizeResolve(ResolveContext context) {
+        //parents
+        int parentsNumber = 0;
+        int membersNumber = 0;
+        if (javaClazz.getSuperclass() != Object.class && context.canReference(javaClazz.getSuperclass())) {
+            parentsNumber++;
+        }
+        for (Class<?> anInterface : javaClazz.getInterfaces()) {
+            if (context.canReference(anInterface)) {
+                parentsNumber++;
+            }
+        }
+        if (members != null) {
+            for (JavaInstanceMember value : members.values()) {
+                if (value.getType() != 0) {
+                    membersNumber++;
+                }
+            }
+        }
+        hasParents = parentsNumber != 0;
+        hasMembers = membersNumber != 0;
+
+
+    }
 
     private Map<String, List<JavaInstanceMember>> parentMembers = null;
 

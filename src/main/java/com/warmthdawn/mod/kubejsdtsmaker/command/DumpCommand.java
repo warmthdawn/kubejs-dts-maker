@@ -1,4 +1,4 @@
-package com.warmthdawn.mod.kubejsgrammardump.command;
+package com.warmthdawn.mod.kubejsdtsmaker.command;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.warmthdawn.mod.kubejsdtsmaker.BuilderManager;

@@ -35,6 +35,9 @@ public class ResolveContext {
     }
 
     public boolean canReference(Class<?> clazz) {
+        if (clazz == null) {
+            return false;
+        }
         if (clazz.isPrimitive()) {
             return false;
         }

@@ -3,6 +3,7 @@ package com.warmthdawn.mod.kubejsdtsmaker.typescript.misc;
 import com.warmthdawn.mod.kubejsdtsmaker.builder.DeclarationBuilder;
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.declaration.IDeclaration;
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.generic.TypeParameters;
+import com.warmthdawn.mod.kubejsdtsmaker.typescript.member.Member;
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.types.TsType;
 import org.apache.logging.log4j.util.Strings;
 
@@ -70,6 +71,4 @@ public class CallSignature implements IDeclaration {
         }
         return "arg" + index;
     }
-
-
 }

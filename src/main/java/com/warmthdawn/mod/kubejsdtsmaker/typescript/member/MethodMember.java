@@ -14,6 +14,10 @@ public class MethodMember implements Member {
         this.methods = methods;
     }
 
+    public List<CallSignature> getMethods() {
+        return methods;
+    }
+
     @Override
     public void build(DeclarationBuilder builder) {
         for (CallSignature method : methods) {

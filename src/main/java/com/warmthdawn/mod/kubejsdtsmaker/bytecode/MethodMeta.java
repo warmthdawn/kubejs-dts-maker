@@ -23,7 +23,7 @@ public class MethodMeta {
 
         return new MethodMeta(
             name,
-            Type.getType(declaringClass).getDescriptor(),
+            Type.getType(declaringClass).getInternalName(),
             Type.getMethodDescriptor(method)
         );
     }
@@ -34,7 +34,7 @@ public class MethodMeta {
 
         return new MethodMeta(
             name,
-            Type.getType(declaringClass).getDescriptor(),
+            Type.getType(declaringClass).getInternalName(),
             Type.getConstructorDescriptor(constructor)
         );
     }
