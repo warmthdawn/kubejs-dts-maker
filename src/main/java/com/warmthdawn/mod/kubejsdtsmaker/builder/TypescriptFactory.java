@@ -401,7 +401,9 @@ public class TypescriptFactory {
         TsType returnType = createReferenceNonnull(method.getReturnType());
         List<TsType> parameterTypes = createParameterTypes(method.getParameterType());
         List<String> parameterNames = parameterNameResolver.find(method.getRawMethod());
-        return new CallSignature(parameterTypes, typeParameters, returnType, parameterNames);
+        CallSignature callSignature = new CallSignature(parameterTypes, typeParameters, returnType, parameterNames);
+        callSignature.setVarargs(method.getRawMethod().isVarArgs());
+        return callSignature;
     }
 
 
@@ -419,7 +421,9 @@ public class TypescriptFactory {
         TsType returnType = createReferenceNonnull(method.getGenericReturnType());
         List<TsType> parameterTypes = createParameterTypes(method.getGenericParameterTypes());
         List<String> parameterNames = parameterNameResolver.find(method);
-        return new CallSignature(parameterTypes, typeParameters, returnType, parameterNames);
+        CallSignature callSignature = new CallSignature(parameterTypes, typeParameters, returnType, parameterNames);
+        callSignature.setVarargs(method.isVarArgs());
+        return callSignature;
     }
 
     public TsConstructorSignature createConstructorSignature(Constructor<?> constructor, Class<?> clazz) {

@@ -14,6 +14,7 @@ public class CallSignature implements IDeclaration {
     private TypeParameters typeParameters;
     private TsType returnType;
     private List<String> parameterNames;
+    private boolean isVarargs = false;
 
     public List<TsType> getParamsTypes() {
         return paramsTypes;
@@ -32,6 +33,14 @@ public class CallSignature implements IDeclaration {
         this.typeParameters = typeParameters;
         this.returnType = returnType;
         this.parameterNames = parameterNames;
+    }
+
+    public boolean isVarargs() {
+        return isVarargs;
+    }
+
+    public void setVarargs(boolean varargs) {
+        isVarargs = varargs;
     }
 
     @Override
@@ -53,10 +62,14 @@ public class CallSignature implements IDeclaration {
         }
         builder.append("(");
         for (int i = 0; i < paramsTypes.size(); i++) {
+            boolean last = (i == paramsTypes.size() - 1);
+            if(last && isVarargs) {
+                builder.append("...");
+            }
             builder.append(getParameterName(i))
                 .append(": ")
                 .append(paramsTypes.get(i));
-            if (i != paramsTypes.size() - 1) {
+            if (!last) {
                 builder.append(", ");
             }
         }
