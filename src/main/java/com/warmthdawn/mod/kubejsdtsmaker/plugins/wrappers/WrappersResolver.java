@@ -1,6 +1,5 @@
 package com.warmthdawn.mod.kubejsdtsmaker.plugins.wrappers;
 
-import com.sun.xml.internal.bind.v2.model.core.ID;
 import com.warmthdawn.mod.kubejsdtsmaker.context.BuildContext;
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.declaration.CustomDeclaration;
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.declaration.IDeclaration;
@@ -27,7 +26,6 @@ public class WrappersResolver {
         List<IDeclaration> result = new ArrayList<>(extraTypes.size());
         for (Tuple<Map<String, Object>, String> extraType : extraTypes) {
             Map<String, Object> mappings = extraType.getA();
-            Map<String, TsType> typeMappings = new HashMap<>(mappings.size());
             String content = extraType.getB();
             for (Map.Entry<String, Object> entry : mappings.entrySet()) {
                 String replacement = "${" + entry.getKey() + "}";
