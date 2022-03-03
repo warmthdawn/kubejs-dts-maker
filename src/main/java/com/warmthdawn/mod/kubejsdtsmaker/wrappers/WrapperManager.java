@@ -24,7 +24,7 @@ public class WrapperManager {
         for (Class<?> clazz : classes) {
             String name = clazz.getSimpleName();
             String actualName = name;
-            for (int i = 0; !wrapperNames.containsKey(actualName); i++) {
+            for (int i = 0; wrapperNames.containsKey(actualName); i++) {
                 actualName = name + i;
             }
             wrapperNames.put(actualName, clazz);

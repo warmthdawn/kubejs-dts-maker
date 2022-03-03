@@ -1,6 +1,7 @@
 package com.warmthdawn.mod.kubejsdtsmaker;
 
 import com.warmthdawn.mod.kubejsdtsmaker.command.DumpCommand;
+import com.warmthdawn.mod.kubejsdtsmaker.wrappers.BuiltinWrappers;
 import dev.latvian.kubejs.script.ScriptManager;
 import dev.latvian.kubejs.script.ScriptType;
 import net.minecraftforge.common.MinecraftForge;
@@ -27,6 +28,7 @@ public class KubeJSDtsMaker {
 
     private void preInit(FMLCommonSetupEvent t) {
 
+        BuiltinWrappers.addDefaultWrappers();
 
     }
 

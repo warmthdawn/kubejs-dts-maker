@@ -7,8 +7,10 @@ import com.warmthdawn.mod.kubejsdtsmaker.bytecode.BytecodeUtils;
 import com.warmthdawn.mod.kubejsdtsmaker.bytecode.ScanResult;
 import com.warmthdawn.mod.kubejsdtsmaker.collector.WrappedBindingsEvent;
 import com.warmthdawn.mod.kubejsdtsmaker.context.BuildContext;
+import com.warmthdawn.mod.kubejsdtsmaker.context.GlobalTypeScope;
 import com.warmthdawn.mod.kubejsdtsmaker.context.KubeJsGlobalContext;
 import com.warmthdawn.mod.kubejsdtsmaker.context.ResolveContext;
+import com.warmthdawn.mod.kubejsdtsmaker.java.JavaTypeInfo;
 import com.warmthdawn.mod.kubejsdtsmaker.plugins.*;
 import com.warmthdawn.mod.kubejsdtsmaker.plugins.WrappersPlugin;
 import com.warmthdawn.mod.kubejsdtsmaker.resolver.JavaClassResolver;
@@ -16,11 +18,10 @@ import com.warmthdawn.mod.kubejsdtsmaker.resolver.MethodParameterNameResolver;
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.DeclarationFile;
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.Namespace;
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.global.IGlobalDeclaration;
+import com.warmthdawn.mod.kubejsdtsmaker.util.MiscUtils;
+import com.warmthdawn.mod.kubejsdtsmaker.wrappers.BuiltinWrappers;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -109,6 +110,16 @@ public class BuilderManager {
     public void resolveClasses() {
         JavaClassResolver.resolve(beginClasses, context, 2);
         context.getTypeInfos().values().forEach(it -> it.finalizeResolve(context));
+
+
+        GlobalTypeScope typeScope = context.getTypeScope();
+        Map<Class<?>, JavaTypeInfo> allTypes = context.getTypeInfos();
+        for (Class<?> clazz : allTypes.keySet()) {
+            String namespace = MiscUtils.getNamespace(clazz);
+            String namespaceName = typeScope.namespaceNoConflict(namespace);
+            buildContext.addNamespace(clazz, namespaceName);
+        }
+
         forEachPlugin(IBuilderPlugin::onResolveFinished);
     }
 

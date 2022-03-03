@@ -51,17 +51,13 @@ public class TypescriptFactory {
     }
 
     public DeclarationFile createFile() {
-        GlobalTypeScope typeScope = context.getTypeScope();
         Map<Class<?>, JavaTypeInfo> allTypes = context.getTypeInfos();
-
         Multimap<String, Class<?>> groupedTypes = TreeMultimap.create(Comparator.naturalOrder(), Comparator.comparing(Class::getSimpleName));
 
         //吧所有类按命名空间分组
         for (Class<?> clazz : allTypes.keySet()) {
-            String namespace = MiscUtils.getNamespace(clazz);
-            String namespaceName = typeScope.namespaceNoConflict(namespace);
-            groupedTypes.put(namespaceName, clazz);
-            buildContext.addNamespace(clazz, namespaceName);
+            String namespace = buildContext.getNamespace(clazz);
+            groupedTypes.put(namespace, clazz);
         }
         List<Namespace> namespaces = new ArrayList<>(groupedTypes.keySet().size());
         for (String namespaceName : groupedTypes.keySet()) {
