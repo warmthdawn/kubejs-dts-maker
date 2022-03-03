@@ -126,7 +126,7 @@ public class TypescriptFactory {
 
         if (members.isEmpty()) {
             if (parents.size() == 0) {
-                return new TypeAliasDeclaration(name, PredefinedTypes.OBJECT, typeParameters);
+                return new TypeAliasDeclaration(name, PredefinedType.OBJECT, typeParameters);
             }
             if (parents.size() == 1) {
                 return new TypeAliasDeclaration(name, parents.get(0), typeParameters);
@@ -243,7 +243,7 @@ public class TypescriptFactory {
                 }
             }
             if (boundTypes.size() == 0) {
-                return PredefinedTypes.ANY;
+                return PredefinedType.ANY;
             }
             if (boundTypes.size() == 1) {
                 return boundTypes.stream().findAny().get();
@@ -253,7 +253,7 @@ public class TypescriptFactory {
 
         TypeReference reference = createReference(type);
         if (reference == null) {
-            return PredefinedTypes.ANY;
+            return PredefinedType.ANY;
         }
 
 
@@ -276,7 +276,7 @@ public class TypescriptFactory {
         }
         if (clazz != null) {
             Class<?> finalClazz = clazz;
-            TypeReference result = manager.applyOnPlugin(p -> p.onParameterWrapper(finalClazz, old));
+            TsType result = manager.applyOnPlugin(p -> p.onParameterWrapper(finalClazz, old));
             if (result != old) {
                 return result;
             }
@@ -374,7 +374,7 @@ public class TypescriptFactory {
                 if (reference instanceof TypeReference) {
                     boundTypes.add(reference);
                 }
-                if (reference == PredefinedTypes.STRING || reference == PredefinedTypes.NUMBER || reference == PredefinedTypes.BOOLEAN) {
+                if (reference == PredefinedType.STRING || reference == PredefinedType.NUMBER || reference == PredefinedType.BOOLEAN) {
                     boundTypes.add(reference);
                 }
             }

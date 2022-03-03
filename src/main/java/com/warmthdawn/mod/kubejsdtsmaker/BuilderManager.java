@@ -10,7 +10,7 @@ import com.warmthdawn.mod.kubejsdtsmaker.context.BuildContext;
 import com.warmthdawn.mod.kubejsdtsmaker.context.KubeJsGlobalContext;
 import com.warmthdawn.mod.kubejsdtsmaker.context.ResolveContext;
 import com.warmthdawn.mod.kubejsdtsmaker.plugins.*;
-import com.warmthdawn.mod.kubejsdtsmaker.plugins.wrappers.WrappersPlugin;
+import com.warmthdawn.mod.kubejsdtsmaker.plugins.WrappersPlugin;
 import com.warmthdawn.mod.kubejsdtsmaker.resolver.JavaClassResolver;
 import com.warmthdawn.mod.kubejsdtsmaker.resolver.MethodParameterNameResolver;
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.DeclarationFile;

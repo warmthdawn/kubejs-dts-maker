@@ -1,15 +1,15 @@
 package com.warmthdawn.mod.kubejsdtsmaker.util;
 
 import com.warmthdawn.mod.kubejsdtsmaker.builder.DeclarationBuilder;
+import com.warmthdawn.mod.kubejsdtsmaker.context.BuildContext;
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.generic.TypeArguments;
-import com.warmthdawn.mod.kubejsdtsmaker.typescript.types.PredefinedTypes;
+import com.warmthdawn.mod.kubejsdtsmaker.typescript.types.PredefinedType;
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.types.TsType;
+import com.warmthdawn.mod.kubejsdtsmaker.typescript.types.TypeReference;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.function.BiConsumer;
-import java.util.function.Function;
 
 public class BuilderUtils {
     public static <T> void join(StringBuilder builder, String divider, List<T> list, BiConsumer<T, StringBuilder> action) {
@@ -37,8 +37,15 @@ public class BuilderUtils {
         }
         ArrayList<TsType> list = new ArrayList<>(argCount);
         for (int i = 0; i < argCount; i++) {
-            list.add(PredefinedTypes.ANY);
+            list.add(PredefinedType.ANY);
         }
         return new TypeArguments(list);
     }
+
+    public static TypeReference createTypeReference(BuildContext context, Class<?> clazz) {
+        TypeArguments typeArguments = BuilderUtils.createEmptyTypeArguments(clazz.getTypeParameters().length);
+        String namespace = context.getNamespace(clazz);
+        return new TypeReference(typeArguments, namespace, clazz.getSimpleName());
+    }
+
 }

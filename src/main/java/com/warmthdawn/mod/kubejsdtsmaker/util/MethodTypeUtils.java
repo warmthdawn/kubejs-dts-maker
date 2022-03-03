@@ -2,15 +2,12 @@ package com.warmthdawn.mod.kubejsdtsmaker.util;
 
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.misc.CallSignature;
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.types.ArrayType;
-import com.warmthdawn.mod.kubejsdtsmaker.typescript.types.PredefinedTypes;
+import com.warmthdawn.mod.kubejsdtsmaker.typescript.types.PredefinedType;
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.types.TsType;
-import dev.latvian.mods.rhino.NativeJavaClass;
-import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.reflect.TypeUtils;
 
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -90,21 +87,21 @@ public class MethodTypeUtils {
 
 
     private static int compareType(TsType a, TsType b) {
-        if (a == PredefinedTypes.ANY && b == PredefinedTypes.ANY) {
+        if (a == PredefinedType.ANY && b == PredefinedType.ANY) {
             return 0;
         }
-        if (a == PredefinedTypes.ANY) {
+        if (a == PredefinedType.ANY) {
             return 1;
         }
-        if (b == PredefinedTypes.ANY) {
+        if (b == PredefinedType.ANY) {
             return -1;
         }
-        if (a instanceof PredefinedTypes && b instanceof PredefinedTypes) {
-            return ((PredefinedTypes) a).ordinal() - ((PredefinedTypes) b).ordinal();
+        if (a instanceof PredefinedType && b instanceof PredefinedType) {
+            return ((PredefinedType) a).ordinal() - ((PredefinedType) b).ordinal();
         }
-        if (a instanceof PredefinedTypes)
+        if (a instanceof PredefinedType)
             return -1;
-        if (b instanceof PredefinedTypes)
+        if (b instanceof PredefinedType)
             return 1;
 
         if (a instanceof ArrayType && b instanceof ArrayType) {

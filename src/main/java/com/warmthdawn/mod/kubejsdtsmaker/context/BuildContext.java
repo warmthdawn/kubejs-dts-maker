@@ -2,10 +2,9 @@ package com.warmthdawn.mod.kubejsdtsmaker.context;
 
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.declaration.IDeclaration;
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.declaration.InterfaceDeclaration;
-import com.warmthdawn.mod.kubejsdtsmaker.typescript.types.PredefinedTypes;
+import com.warmthdawn.mod.kubejsdtsmaker.typescript.types.PredefinedType;
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.types.TsType;
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.types.TypeReference;
-import com.warmthdawn.mod.kubejsdtsmaker.util.BuilderUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -68,7 +67,7 @@ public class BuildContext {
         String namespace = getNamespace(clazz);
 
         if (constructorType == null) {
-            return PredefinedTypes.ANY;
+            return PredefinedType.ANY;
         }
         return new TypeReference(null, namespace, constructorType.getIdentity());
     }

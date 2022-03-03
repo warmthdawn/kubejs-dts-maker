@@ -5,6 +5,7 @@ import com.warmthdawn.mod.kubejsdtsmaker.bytecode.ScanResult;
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.Namespace;
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.declaration.InterfaceDeclaration;
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.global.IGlobalDeclaration;
+import com.warmthdawn.mod.kubejsdtsmaker.typescript.types.TsType;
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.types.TypeReference;
 
 import java.lang.reflect.Type;
@@ -18,7 +19,7 @@ public interface IBuilderPlugin {
     default void onInterfaceBuild(Class<?> javaClazz, InterfaceDeclaration interfaceDeclaration, boolean isStatic) {
     }
 
-    default TypeReference onParameterWrapper(Class<?> type, TypeReference old) {
+    default TsType onParameterWrapper(Class<?> type, TypeReference old) {
         return null;
     }
 

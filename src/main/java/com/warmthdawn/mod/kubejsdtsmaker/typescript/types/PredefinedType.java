@@ -2,7 +2,7 @@ package com.warmthdawn.mod.kubejsdtsmaker.typescript.types;
 
 import javax.annotation.Nonnull;
 
-public enum PredefinedTypes implements TsType {
+public enum PredefinedType implements TsType {
     NEVER("never"),
     UNDEFINED("undefined"),
     VOID("void"),
@@ -14,7 +14,7 @@ public enum PredefinedTypes implements TsType {
     OBJECT("object"),
     ANY("any");
 
-    PredefinedTypes(String name) {
+    PredefinedType(String name) {
         this.name = name;
     }
 

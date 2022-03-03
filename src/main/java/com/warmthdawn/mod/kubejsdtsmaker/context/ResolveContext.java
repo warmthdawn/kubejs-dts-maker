@@ -1,12 +1,11 @@
 package com.warmthdawn.mod.kubejsdtsmaker.context;
 
 import com.warmthdawn.mod.kubejsdtsmaker.java.JavaTypeInfo;
-import com.warmthdawn.mod.kubejsdtsmaker.typescript.types.PredefinedTypes;
+import com.warmthdawn.mod.kubejsdtsmaker.typescript.types.PredefinedType;
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.types.TsType;
 import com.warmthdawn.mod.kubejsdtsmaker.util.MiscUtils;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class ResolveContext {
@@ -70,25 +69,25 @@ public class ResolveContext {
     }
 
     public void initPrimitive() {
-        wrappedObjects.put(void.class, PredefinedTypes.VOID);
-        wrappedObjects.put(String.class, PredefinedTypes.STRING);
-        wrappedObjects.put(char.class, PredefinedTypes.VOID);
-        wrappedObjects.put(Character.class, PredefinedTypes.STRING);
-        wrappedObjects.put(boolean.class, PredefinedTypes.BOOLEAN);
-        wrappedObjects.put(Boolean.class, PredefinedTypes.BOOLEAN);
-        wrappedObjects.put(Number.class, PredefinedTypes.NUMBER);
-        wrappedObjects.put(int.class, PredefinedTypes.NUMBER);
-        wrappedObjects.put(Integer.class, PredefinedTypes.NUMBER);
-        wrappedObjects.put(byte.class, PredefinedTypes.NUMBER);
-        wrappedObjects.put(Byte.class, PredefinedTypes.NUMBER);
-        wrappedObjects.put(short.class, PredefinedTypes.NUMBER);
-        wrappedObjects.put(Short.class, PredefinedTypes.NUMBER);
-        wrappedObjects.put(long.class, PredefinedTypes.NUMBER);
-        wrappedObjects.put(Long.class, PredefinedTypes.NUMBER);
-        wrappedObjects.put(double.class, PredefinedTypes.NUMBER);
-        wrappedObjects.put(Double.class, PredefinedTypes.NUMBER);
-        wrappedObjects.put(float.class, PredefinedTypes.NUMBER);
-        wrappedObjects.put(Float.class, PredefinedTypes.NUMBER);
-        wrappedObjects.put(Object.class, PredefinedTypes.ANY);
+        wrappedObjects.put(void.class, PredefinedType.VOID);
+        wrappedObjects.put(String.class, PredefinedType.STRING);
+        wrappedObjects.put(char.class, PredefinedType.VOID);
+        wrappedObjects.put(Character.class, PredefinedType.STRING);
+        wrappedObjects.put(boolean.class, PredefinedType.BOOLEAN);
+        wrappedObjects.put(Boolean.class, PredefinedType.BOOLEAN);
+        wrappedObjects.put(Number.class, PredefinedType.NUMBER);
+        wrappedObjects.put(int.class, PredefinedType.NUMBER);
+        wrappedObjects.put(Integer.class, PredefinedType.NUMBER);
+        wrappedObjects.put(byte.class, PredefinedType.NUMBER);
+        wrappedObjects.put(Byte.class, PredefinedType.NUMBER);
+        wrappedObjects.put(short.class, PredefinedType.NUMBER);
+        wrappedObjects.put(Short.class, PredefinedType.NUMBER);
+        wrappedObjects.put(long.class, PredefinedType.NUMBER);
+        wrappedObjects.put(Long.class, PredefinedType.NUMBER);
+        wrappedObjects.put(double.class, PredefinedType.NUMBER);
+        wrappedObjects.put(Double.class, PredefinedType.NUMBER);
+        wrappedObjects.put(float.class, PredefinedType.NUMBER);
+        wrappedObjects.put(Float.class, PredefinedType.NUMBER);
+        wrappedObjects.put(Object.class, PredefinedType.ANY);
     }
 }

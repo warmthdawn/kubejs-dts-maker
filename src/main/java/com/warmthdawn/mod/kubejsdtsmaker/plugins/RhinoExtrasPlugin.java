@@ -1,6 +1,5 @@
 package com.warmthdawn.mod.kubejsdtsmaker.plugins;
 
-import com.mojang.datafixers.types.Func;
 import com.warmthdawn.mod.kubejsdtsmaker.BuilderManager;
 import com.warmthdawn.mod.kubejsdtsmaker.builder.DeclarationBuilder;
 import com.warmthdawn.mod.kubejsdtsmaker.builder.TypescriptFactory;
@@ -10,7 +9,7 @@ import com.warmthdawn.mod.kubejsdtsmaker.typescript.declaration.InterfaceDeclara
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.generic.TypeParameters;
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.member.*;
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.misc.CallSignature;
-import com.warmthdawn.mod.kubejsdtsmaker.typescript.types.PredefinedTypes;
+import com.warmthdawn.mod.kubejsdtsmaker.typescript.types.PredefinedType;
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.types.TsType;
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.types.TsTypeVariable;
 import dev.latvian.mods.rhino.SymbolKey;
@@ -19,10 +18,8 @@ import dev.latvian.mods.rhino.util.MapLike;
 
 import java.lang.reflect.TypeVariable;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 
 import static com.warmthdawn.mod.kubejsdtsmaker.util.InterfaceMemberUtils.removeMember;
 
@@ -63,13 +60,13 @@ public class RhinoExtrasPlugin implements IBuilderPlugin {
 
         if (Map.class == javaClazz || MapLike.class == javaClazz) {
             //对不起这里不支持泛型
-            members.add(new IndexMember("key", true, false, PredefinedTypes.ANY));
+            members.add(new IndexMember("key", true, false, PredefinedType.ANY));
         }
 
         if (List.class == javaClazz || ListLike.class == javaClazz) {
-            members.add(new FieldMember("length", true, PredefinedTypes.NUMBER));
+            members.add(new FieldMember("length", true, PredefinedType.NUMBER));
 
-            members.add(new FieldMember("[" + SymbolKey.IS_CONCAT_SPREADABLE.getName() + "]", true, PredefinedTypes.BOOLEAN));
+            members.add(new FieldMember("[" + SymbolKey.IS_CONCAT_SPREADABLE.getName() + "]", true, PredefinedType.BOOLEAN));
 
             TypeVariable<?>[] typeParameters = javaClazz.getTypeParameters();
             TsTypeVariable typeVariable = new TsTypeVariable(typeParameters[0].getName());
@@ -86,7 +83,7 @@ public class RhinoExtrasPlugin implements IBuilderPlugin {
         TypeVariable<?>[] clazzVariables = clazz.getTypeParameters();
         TypeParameters typeParameters = typescriptFactory.createTypeParameters(clazzVariables);
         TsType returnType = typescriptFactory.createReferenceNonnull(clazz, clazzVariables);
-        return new CallSignature(Collections.singletonList(PredefinedTypes.ANY), typeParameters, returnType,
+        return new CallSignature(Collections.singletonList(PredefinedType.ANY), typeParameters, returnType,
             Collections.singletonList("val"));
     }
 
