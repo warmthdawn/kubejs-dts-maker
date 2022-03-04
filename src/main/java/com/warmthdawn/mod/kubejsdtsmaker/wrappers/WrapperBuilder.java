@@ -1,20 +1,16 @@
 package com.warmthdawn.mod.kubejsdtsmaker.wrappers;
 
-import com.warmthdawn.mod.kubejsdtsmaker.KubeJSDtsMaker;
 import com.warmthdawn.mod.kubejsdtsmaker.context.BuildContext;
 import com.warmthdawn.mod.kubejsdtsmaker.plugins.WrappersPlugin;
 import com.warmthdawn.mod.kubejsdtsmaker.special.ISpecialDeclaration;
-import com.warmthdawn.mod.kubejsdtsmaker.typescript.declaration.ExtrasDeclaration;
-import com.warmthdawn.mod.kubejsdtsmaker.typescript.declaration.IDeclaration;
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.declaration.TypeAliasDeclaration;
+import com.warmthdawn.mod.kubejsdtsmaker.typescript.generic.TypeArguments;
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.types.*;
 import com.warmthdawn.mod.kubejsdtsmaker.util.BuilderUtils;
-import org.apache.commons.lang3.StringUtils;
+import net.minecraft.util.Tuple;
 
-import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.function.Function;
 
 public class WrapperBuilder {
     public Class<?> getTargetClass() {
@@ -38,21 +34,6 @@ public class WrapperBuilder {
         }
 
         @Override
-        public WrapperBuilder withTemplate(String template) {
-            return this;
-        }
-
-        @Override
-        public WrapperBuilder withTemplateFile(String path) {
-            return this;
-        }
-
-        @Override
-        public WrapperBuilder templateParams(String name, Class<?> clazz) {
-            return this;
-        }
-
-        @Override
         public void buildAndAdd(BuildContext context, WrapperContext wrapperContext) {
 
         }
@@ -62,15 +43,14 @@ public class WrapperBuilder {
     private Class<?> targetClass;
 
     private boolean containsSelf;
+    private boolean isNullable = false;
 
     private List<TsType> alternativeTypes;
     private List<Class<?>> alternativeClasses;
     private List<Class<?>> referencedTypes;
+    private Tuple<String, String> wrap;
 
-    private String templateStr;
-    private String templateFile;
 
-    private Map<String, Class<?>> templateParameters;
     private String identity;
 
     private List<ISpecialDeclaration> specialDeclarations;
@@ -78,10 +58,9 @@ public class WrapperBuilder {
     public WrapperBuilder(Class<?> targetClass, String identity) {
         this.identity = identity;
         this.targetClass = targetClass;
-        this.containsSelf = false;
+        this.containsSelf = true;
         this.alternativeTypes = new ArrayList<>();
         this.alternativeClasses = new ArrayList<>();
-        this.templateParameters = new HashMap<>();
         this.specialDeclarations = new ArrayList<>();
     }
 
@@ -100,7 +79,8 @@ public class WrapperBuilder {
         return this;
     }
 
-    public WrapperBuilder addRef() {
+
+    public WrapperBuilder addRef(WrapperBuilder regExp) {
         return this;
     }
 
@@ -133,8 +113,48 @@ public class WrapperBuilder {
         return this;
     }
 
+    public WrapperBuilder addAsEnum(Function<Object, String> literalFunction) {
+        addEnum(targetClass, literalFunction);
+        return this;
+    }
+    public WrapperBuilder addLiterals(String ...literals) {
+        addLiterals(Arrays.asList(literals));
+        return this;
+    }
+    public WrapperBuilder addLiterals(Collection<String> literals) {
+        add(BuilderUtils.createStringLiterals(new ArrayList<>(literals)));
+        return this;
+    }
+
     public WrapperBuilder addEnum(Class<?> clazz) {
-        add(PredefinedType.STRING);
+        add(BuilderUtils.createStringLiterals(clazz));
+        return this;
+    }
+
+    public WrapperBuilder addEnum(Class<?> clazz, Function<Object, String> literalFunction) {
+        add(BuilderUtils.createStringLiterals(clazz, literalFunction));
+        return this;
+    }
+
+    public WrapperBuilder withWrap(String wrapName, String wrapNamespace) {
+        wrap = new Tuple<>(wrapName, wrapNamespace);
+        return this;
+    }
+
+    public WrapperBuilder withWrap(ISpecialDeclaration specialDeclaration) {
+        specialDeclarations.add(specialDeclaration);
+        withWrap(specialDeclaration.getIdentity(), WrappersPlugin.EXTRA_NAMESPACE);
+        return this;
+    }
+
+    public WrapperBuilder addExtra(ISpecialDeclaration specialDeclaration) {
+        this.alternativeTypes.add(new TypeReference(null, WrappersPlugin.EXTRA_NAMESPACE, specialDeclaration.getIdentity()));
+        specialDeclarations.add(specialDeclaration);
+        return this;
+    }
+
+    public WrapperBuilder addSpecialExtra(ISpecialDeclaration specialDeclaration) {
+        specialDeclarations.add(specialDeclaration);
         return this;
     }
 
@@ -149,27 +169,13 @@ public class WrapperBuilder {
     }
 
     public WrapperBuilder nullable() {
+        this.isNullable = true;
         return this;
     }
 
     public WrapperBuilder acceptAny() {
         this.ignoreSelf();
         this.add(PredefinedType.ANY);
-        return this;
-    }
-
-    public WrapperBuilder withTemplate(String template) {
-        this.templateStr = template;
-        return this;
-    }
-
-    public WrapperBuilder withTemplateFile(String path) {
-        this.templateFile = path;
-        return this;
-    }
-
-    public WrapperBuilder templateParams(String name, Class<?> clazz) {
-        this.templateParameters.put(name, clazz);
         return this;
     }
 
@@ -192,43 +198,19 @@ public class WrapperBuilder {
         if (types.size() == 1) {
             resultType = types.get(0);
         } else {
-            wrapperDeclaration = new TypeAliasDeclaration(identity, new UnionType(types), null);
+            TsType decType = new UnionType(types);
+            if (wrap != null) {
+                decType = new TypeReference(new TypeArguments(decType), wrap.getB(), wrap.getA());
+            }
+            wrapperDeclaration = new TypeAliasDeclaration(identity, decType, null);
             resultType = new TypeReference(null, WrappersPlugin.WRAPPER_NAMESPACE, identity);
         }
         wrapperContext.addWrapperType(targetClass, resultType);
-
-        List<IDeclaration> extraDec = new ArrayList<>();
-        if (templateStr == null) {
-            if (templateFile != null) {
-                try (InputStream in = KubeJSDtsMaker.class.getResourceAsStream(templateFile)) {
-                    if (in != null) {
-                        BufferedReader reader = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
-                        List<String> lines;
-                        if (!templateParameters.isEmpty()) {
-                            final String[] searchList = new String[templateParameters.size()];
-                            final String[] replacementList = new String[templateParameters.size()];
-                            lines = reader.lines().map(
-                                it -> StringUtils.replaceEach(it, searchList, replacementList)
-                            ).collect(Collectors.toList());
-                        } else {
-                            lines = reader.lines().collect(Collectors.toList());
-                        }
-                        extraDec.add(new ExtrasDeclaration(lines));
-                    }
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
-            }
-        }
-        for (ISpecialDeclaration specialDeclaration : specialDeclarations) {
-            extraDec.add(specialDeclaration.generate());
-        }
 
 
         if (wrapperDeclaration != null) {
             wrapperContext.addWrapperDeclaration(wrapperDeclaration);
         }
-        wrapperContext.addExtraDeclarations(extraDec);
     }
 
 }

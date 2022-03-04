@@ -2,20 +2,32 @@ package com.warmthdawn.mod.kubejsdtsmaker.wrappers;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.warmthdawn.mod.kubejsdtsmaker.special.ExtraDeclarations;
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.types.PredefinedType;
 import dev.latvian.kubejs.block.BlockStatePredicate;
+import dev.latvian.kubejs.block.MaterialJS;
 import dev.latvian.kubejs.entity.EntityJS;
+import dev.latvian.kubejs.fluid.FluidStackJS;
 import dev.latvian.kubejs.item.ItemStackJS;
+import dev.latvian.kubejs.item.custom.ItemType;
+import dev.latvian.kubejs.item.ingredient.IngredientJS;
+import dev.latvian.kubejs.item.ingredient.IngredientStackJS;
+import dev.latvian.kubejs.recipe.filter.RecipeFilter;
 import dev.latvian.kubejs.text.Text;
 import dev.latvian.kubejs.util.ListJS;
 import dev.latvian.kubejs.util.MapJS;
 import dev.latvian.kubejs.world.BlockContainerJS;
+import dev.latvian.mods.rhino.mod.wrapper.DirectionWrapper;
+import jdk.nashorn.internal.ir.Block;
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.EntityClassification;
+import net.minecraft.item.Item;
 import net.minecraft.nbt.CollectionNBT;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
-import net.minecraft.nbt.StringNBT;
+import net.minecraft.tags.ITag;
 import net.minecraft.util.Direction;
+import net.minecraft.util.IItemProvider;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -35,7 +47,7 @@ public class BuiltinWrappers {
 
         manager.builderFor(UUID.class)
             .add("string & { length: 32 | 36 }");
-        manager.builderFor(Pattern.class)
+        WrapperBuilder regExp = manager.builderFor(Pattern.class)
             .add("RegExp")
             .add(PredefinedType.STRING);
         manager.builderFor(JsonObject.class)
@@ -67,11 +79,17 @@ public class BuiltinWrappers {
             .add(BlockPos.class)
             .add(BlockContainerJS.class)
             .addTuple(PredefinedType.NUMBER, 3);
-        //TODO: Item
+
+        manager.builderFor(Item.class)
+            .nullable()
+            .addExtra(ExtraDeclarations.Item)
+            .addExtra(ExtraDeclarations.ItemTagSelector)
+            .addLiterals("-", "air")
+            .add(ItemStackJS.class);
         manager.builderFor(GenerationStage.Decoration.class)
             .addAsEnum();
         manager.builderFor(EntityClassification.class)
-            .addAsEnum();
+            .addAsEnum(it -> ((EntityClassification) it).getName());
         manager.builderFor(Color.class)
             .add(PredefinedType.NUMBER)
             .add(PredefinedType.STRING)
@@ -82,23 +100,43 @@ public class BuiltinWrappers {
             .addTuple(PredefinedType.NUMBER, 3)
             .addTuple(PredefinedType.NUMBER, 6);
         manager.builderFor(Direction.class)
-            .addAsEnum();
+            .addLiterals(DirectionWrapper.ALL.keySet());
         manager.builderFor(MapJS.class)
             .acceptAny();
         manager.builderFor(ListJS.class)
             .addArray(PredefinedType.ANY)
             .add(PredefinedType.OBJECT);
-        //TODO: ItemStackJS
-        //TODO: IngredientJS
-        //TODO: IngredientStackJS
+        manager.builderFor(ItemStackJS.class)
+            .nullable()
+            .addExtra(ExtraDeclarations.ItemStack)
+            .add(IItemProvider.class);
+        manager.builderFor(IngredientJS.class)
+            .nullable()
+            .addExtra(ExtraDeclarations.Ingredient);
+        manager.builderFor(IngredientStackJS.class)
+            .nullable()
+            .addExtra(ExtraDeclarations.Ingredient);
         manager.builderFor(Text.class)
             .acceptAny();
-        //TODO: BlockStatePredicate
-        //TODO: FluidStackJS
-        //TODO: RecipeFilter
-        //TODO: MaterialJS
-        //TODO: ItemType
-        //TODO: dev.latvian.mods.rhino.mod.util.color.Color
+        manager.builderFor(BlockStatePredicate.class)
+            .withWrap(ExtraDeclarations.ArrayOrSelf)
+            .add(Block.class)
+            .add(BlockState.class)
+            .addExtra(ExtraDeclarations.BlockStatePredicate);
+        manager.builderFor(FluidStackJS.class)
+            .addExtra(ExtraDeclarations.FluidStack);
+        manager.builderFor(RecipeFilter.class)
+            .nullable()
+            .addExtra(ExtraDeclarations.RecipeFilter);
+        manager.builderFor(MaterialJS.class)
+            .addExtra(ExtraDeclarations.Material);
+        manager.builderFor(ItemType.class)
+            .addExtra(ExtraDeclarations.ItemType);
+        manager.builderFor(dev.latvian.mods.rhino.mod.util.color.Color.class)
+            .addExtra(ExtraDeclarations.Color)
+            .add("`#${string}` | number");
+
         //TODO: Unit
+
     }
 }

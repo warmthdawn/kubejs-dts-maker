@@ -4,10 +4,10 @@ import com.warmthdawn.mod.kubejsdtsmaker.builder.DeclarationBuilder;
 
 import java.util.List;
 
-public class ExtrasDeclaration implements IDeclaration {
+public class RawDeclaration implements IDeclaration {
     private List<String> lines;
 
-    public ExtrasDeclaration(List<String> lines) {
+    public RawDeclaration(List<String> lines) {
         this.lines = lines;
     }
 
