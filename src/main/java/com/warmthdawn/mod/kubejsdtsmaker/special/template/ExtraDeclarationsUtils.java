@@ -2,6 +2,7 @@ package com.warmthdawn.mod.kubejsdtsmaker.special.template;
 
 import com.warmthdawn.mod.kubejsdtsmaker.special.ExtraDeclarations;
 import com.warmthdawn.mod.kubejsdtsmaker.special.ISpecialDeclaration;
+import com.warmthdawn.mod.kubejsdtsmaker.special.SpecialDeclarationManager;
 
 import java.util.Arrays;
 
@@ -27,13 +28,15 @@ public class ExtraDeclarationsUtils {
 
     public static ExtraDeclaration external(String file, String identity) {
         if (!file.contains("/")) {
-            file = "data/kubejsdtsmaker/wrappers/" + identity;
+            file = "/data/kubejsdtsmaker/wrappers/" + file;
         }
         return ExternalDeclarationsManager.getInstance().register(file, identity);
     }
 
     public static ExtraDeclaration raw(String identity, String... lines) {
-        return new ExtraDeclaration(identity, () -> Arrays.asList(lines));
+        ExtraDeclaration extraDeclaration = new ExtraDeclaration(identity, () -> Arrays.asList(lines));
+        SpecialDeclarationManager.getInstance().add(extraDeclaration);
+        return extraDeclaration;
     }
 
     public static ExtraDeclaration simple(String identity, String declaration) {

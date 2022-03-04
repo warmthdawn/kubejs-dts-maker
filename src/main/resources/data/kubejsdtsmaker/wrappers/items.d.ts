@@ -11,7 +11,7 @@ type IngredientObject = {
     ingredient?: Ingredient
     item?: Item,
     tag?: ItemTag,
-    fluid?: FiuidStack
+    fluid?: FluidStack
     count?: number,
     amount?: number,
 }

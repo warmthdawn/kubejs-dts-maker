@@ -36,7 +36,7 @@ public class ResourceLocationRegistries implements ISpecialDeclaration {
             builder.append("type ").append(getIdentity()).append(" = {")
                 .increaseIndent();
 
-            for (String key : mappings.keys()) {
+            for (String key : mappings.keySet()) {
                 Collection<String> paths = mappings.get(key);
                 builder.newLine().append("\"").append(key).append("\": [");
                 boolean first = true;

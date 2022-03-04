@@ -11,6 +11,7 @@ import com.warmthdawn.mod.kubejsdtsmaker.collector.WrappedBindingsEvent;
 import com.warmthdawn.mod.kubejsdtsmaker.context.KubeJsGlobalContext;
 import com.warmthdawn.mod.kubejsdtsmaker.context.ResolveContext;
 import com.warmthdawn.mod.kubejsdtsmaker.resolver.JavaClassResolver;
+import com.warmthdawn.mod.kubejsdtsmaker.special.template.ExternalDeclarationsManager;
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.DeclarationFile;
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.global.IGlobalDeclaration;
 import net.minecraft.command.CommandSource;
@@ -32,7 +33,7 @@ public class DumpCommand {
             CommandSource commandsource = it.getSource();
             try {
 //                DeclarationBuilder.build();
-
+                ExternalDeclarationsManager.getInstance().load();
                 BuilderManager builderManager = BuilderManager.create();
                 builderManager.resolveClasses();
                 String s = builderManager.generateResult();

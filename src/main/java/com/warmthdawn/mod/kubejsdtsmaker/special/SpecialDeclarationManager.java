@@ -1,6 +1,7 @@
 package com.warmthdawn.mod.kubejsdtsmaker.special;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class SpecialDeclarationManager {
@@ -20,6 +21,8 @@ public class SpecialDeclarationManager {
     public ISpecialDeclaration get(String identity) {
         return declarationMap.get(identity);
     }
+
+
 
 
 

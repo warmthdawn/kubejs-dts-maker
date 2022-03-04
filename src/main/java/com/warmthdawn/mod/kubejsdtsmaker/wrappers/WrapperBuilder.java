@@ -12,10 +12,9 @@ import net.minecraft.util.Tuple;
 import java.util.*;
 import java.util.function.Function;
 
+@SuppressWarnings("UnusedReturnValue")
 public class WrapperBuilder {
-    public Class<?> getTargetClass() {
-        return targetClass;
-    }
+
 
     public static final WrapperBuilder EMPTY = new WrapperBuilder(null, null) {
         @Override
@@ -39,21 +38,29 @@ public class WrapperBuilder {
         }
     };
 
+    public Class<?> getTargetClass() {
+        return targetClass;
+    }
+
+    public List<Class<?>> getAlternativeClasses() {
+        return alternativeClasses;
+    }
+
     //WrappingClass
-    private Class<?> targetClass;
+    private final Class<?> targetClass;
 
     private boolean containsSelf;
     private boolean isNullable = false;
 
-    private List<TsType> alternativeTypes;
-    private List<Class<?>> alternativeClasses;
-    private List<Class<?>> referencedTypes;
+    private final List<TsType> alternativeTypes;
+    private final List<Class<?>> alternativeClasses;
+    //    private List<Class<?>> referencedTypes;
     private Tuple<String, String> wrap;
 
 
-    private String identity;
+    private final String identity;
 
-    private List<ISpecialDeclaration> specialDeclarations;
+    private final List<ISpecialDeclaration> specialDeclarations;
 
     public WrapperBuilder(Class<?> targetClass, String identity) {
         this.identity = identity;
@@ -74,10 +81,10 @@ public class WrapperBuilder {
         return this;
     }
 
-    public WrapperBuilder addRef(Class<?> clazz) {
-        referencedTypes.add(clazz);
-        return this;
-    }
+//    public WrapperBuilder addRef(Class<?> clazz) {
+//        referencedTypes.add(clazz);
+//        return this;
+//    }
 
 
     public WrapperBuilder addRef(WrapperBuilder regExp) {
@@ -117,10 +124,12 @@ public class WrapperBuilder {
         addEnum(targetClass, literalFunction);
         return this;
     }
-    public WrapperBuilder addLiterals(String ...literals) {
+
+    public WrapperBuilder addLiterals(String... literals) {
         addLiterals(Arrays.asList(literals));
         return this;
     }
+
     public WrapperBuilder addLiterals(Collection<String> literals) {
         add(BuilderUtils.createStringLiterals(new ArrayList<>(literals)));
         return this;
@@ -142,18 +151,21 @@ public class WrapperBuilder {
     }
 
     public WrapperBuilder withWrap(ISpecialDeclaration specialDeclaration) {
+        Objects.requireNonNull(specialDeclaration);
         specialDeclarations.add(specialDeclaration);
         withWrap(specialDeclaration.getIdentity(), WrappersPlugin.EXTRA_NAMESPACE);
         return this;
     }
 
     public WrapperBuilder addExtra(ISpecialDeclaration specialDeclaration) {
+        Objects.requireNonNull(specialDeclaration);
         this.alternativeTypes.add(new TypeReference(null, WrappersPlugin.EXTRA_NAMESPACE, specialDeclaration.getIdentity()));
         specialDeclarations.add(specialDeclaration);
         return this;
     }
 
     public WrapperBuilder addSpecialExtra(ISpecialDeclaration specialDeclaration) {
+        Objects.requireNonNull(specialDeclaration);
         specialDeclarations.add(specialDeclaration);
         return this;
     }
@@ -210,6 +222,10 @@ public class WrapperBuilder {
 
         if (wrapperDeclaration != null) {
             wrapperContext.addWrapperDeclaration(wrapperDeclaration);
+        }
+
+        for (ISpecialDeclaration specialDeclaration : specialDeclarations) {
+            wrapperContext.addSpecialDeclaration(specialDeclaration);
         }
     }
 

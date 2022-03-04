@@ -18,7 +18,7 @@ public class ExtraDeclarations {
     public static final ExtraDeclaration Amounted = external("utiltypes.d.ts", "Amounted");
     public static final ExtraDeclaration ArrayOrSelf = raw("ArrayOrSelf", "type ArrayOrSelf<T> = T | T[]");
     public static final ExtraDeclaration EmptyItem = simple("EmptyItem", "\"-\" | \"air\"");
-    public static final ExtraDeclaration EmptyFluid = simple("EmptyItem", "\"-\" | \"empty\" | \"minecraft:empty\"");
+    public static final ExtraDeclaration EmptyFluid = simple("EmptyFluid", "\"-\" | \"empty\" | \"minecraft:empty\"");
 
 
     //Registries

@@ -11,8 +11,10 @@ import com.warmthdawn.mod.kubejsdtsmaker.typescript.types.TsType;
 import com.warmthdawn.mod.kubejsdtsmaker.typescript.types.TypeReference;
 import com.warmthdawn.mod.kubejsdtsmaker.wrappers.WrapperContext;
 import com.warmthdawn.mod.kubejsdtsmaker.wrappers.WrapperManager;
+
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class WrappersPlugin implements IBuilderPlugin {
     public static final String WRAPPER_NAMESPACE = "Wrappers.wrapper";
@@ -30,8 +32,19 @@ public class WrappersPlugin implements IBuilderPlugin {
 
     @Override
     public void onResolveFinished() {
-        buildContext = new BuildContext();
         WrapperManager.INSTANCE.forEachWrapper(it -> it.buildAndAdd(buildContext, wrapperContext));
+        wrapperContext.evaluateExtras(buildContext);
+
+    }
+
+    @Override
+    public void addResolveClass(Set<Class<?>> resolveClass) {
+
+        WrapperManager.INSTANCE.forEachWrapper(it -> {
+            resolveClass.add(it.getTargetClass());
+            resolveClass.addAll(it.getAlternativeClasses());
+
+        });
 
     }
 

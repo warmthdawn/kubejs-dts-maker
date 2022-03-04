@@ -31,6 +31,7 @@ import org.apache.logging.log4j.Logger;
 import javax.annotation.Nonnull;
 import java.lang.reflect.*;
 import java.util.*;
+import java.util.stream.Stream;
 
 public class TypescriptFactory {
     private final ResolveContext context;
@@ -428,6 +429,8 @@ public class TypescriptFactory {
         if (returnType == null) {
             return null;
         }
+        TypeVariable<?>[] constructorTypeParameters = constructor.getTypeParameters();
+        clazzVariables = Stream.of(clazzVariables, constructorTypeParameters).flatMap(Arrays::stream).toArray(TypeVariable[]::new);
         TypeParameters typeParameters = createTypeParameters(clazzVariables);
         List<TsType> paramsTypes = createParameterTypes(constructor.getGenericParameterTypes());
 

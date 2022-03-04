@@ -3,11 +3,13 @@ package com.warmthdawn.mod.kubejsdtsmaker.typescript.declaration;
 import com.warmthdawn.mod.kubejsdtsmaker.builder.DeclarationBuilder;
 
 import java.util.List;
+import java.util.Objects;
 
 public class RawDeclaration implements IDeclaration {
     private List<String> lines;
 
     public RawDeclaration(List<String> lines) {
+        Objects.requireNonNull(lines);
         this.lines = lines;
     }
 
